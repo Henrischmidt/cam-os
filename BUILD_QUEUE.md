@@ -2,13 +2,10 @@
 
 ## NEXT UP (work on this tonight)
 
-Phase 2 — Core React module (see /docs/the66-build-prompt.md, Section 15)
-
-> Note: Mockups not yet present in /mockups/ — work from the written spec and design tokens in Section 4. Cam will add mockup HTML files later; a subsequent phase will do a visual alignment pass.
+Phase 3 — Behavioural layer (identity reads, why surfacing, end-of-day reflection, Day 67 experience, catch-up flow)
 
 ## QUEUED
 
-Phase 3 — Behavioural layer (identity reads, why surfacing, end-of-day reflection, Day 67 experience, catch-up flow)
 Phase 4 — iCloud sync helper (writes the66-state.json for Scriptable widgets)
 Phase 5 — Scriptable widget scripts (small, medium, large, lock screen)
 Phase 6 — Polish pass (animations refined, haptic hooks, notification placeholders)
@@ -18,6 +15,7 @@ Phase 7 — CAM OS integration (Habits surface to Hub, N8N webhook endpoint, Sho
 
 Phase 0 — Strategy and architecture (done)
 Phase 1 — Claude Design mockups (pending Cam — HTML files to be added to /mockups/)
+Phase 2 — Core React module (complete — PR open)
 
 ## BLOCKED
 
