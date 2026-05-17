@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react'
 import type { Habit, DayLog, Arc } from '../store/sixtysix.store'
 import { useSixtysixStore } from '../store/sixtysix.store'
 import { phaseName, todayString } from '../lib/arcLogic'
+import { hapticLight, hapticMedium } from '../lib/haptics'
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -253,6 +254,7 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
     if (!habit) return
     const value = habit.type === 'toggle' ? habit.target : counterValue
     logHabit(habit.id, value)
+    hapticLight()
     flash()
     setCounterValue(0)
   }
@@ -260,6 +262,7 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
   function handleUndo() {
     if (!habit) return
     logHabit(habit.id, 0)
+    hapticLight()
   }
 
   const missWordCount = missText.trim().split(/\s+/).filter(Boolean).length
@@ -270,6 +273,7 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
     logHonestMiss(habit.id, missText.trim(), yesterdayDate)
     setMissText('')
     setShowMissForm(false)
+    hapticMedium()
     flash()
   }
 

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { milestoneOverlayData } from '../lib/arcLogic'
+import { hapticHeavy } from '../lib/haptics'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface MilestoneOverlayProps {
   day: number
   onDismiss: () => void
+  onArcComplete?: () => void
 }
 
 // Animation states:
@@ -19,19 +21,25 @@ type AnimState = 0 | 1 | 2 | 3 | 4
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function MilestoneOverlay({ day, onDismiss }: MilestoneOverlayProps) {
+export default function MilestoneOverlay({ day, onDismiss, onArcComplete }: MilestoneOverlayProps) {
   const [animState, setAnimState] = useState<AnimState>(0)
 
   const { above, name, below } = milestoneOverlayData(day)
 
   useEffect(() => {
-    // Kick off immediately — state 1: fade in
     setAnimState(1)
+    hapticHeavy()
 
     const t1 = setTimeout(() => setAnimState(2), 300)   // letters stagger in
     const t2 = setTimeout(() => setAnimState(3), 900)   // above/below appear
     const t3 = setTimeout(() => setAnimState(4), 2400)  // begin fade out
-    const t4 = setTimeout(() => onDismiss(), 2800)      // call dismiss after fade
+    const t4 = setTimeout(() => {
+      if (day === 66 && onArcComplete) {
+        onArcComplete()
+      } else {
+        onDismiss()
+      }
+    }, 2800)
 
     return () => {
       clearTimeout(t1)
@@ -126,7 +134,7 @@ export default function MilestoneOverlay({ day, onDismiss }: MilestoneOverlayPro
 
         {/* Tap to skip hint */}
         <button
-          onClick={onDismiss}
+          onClick={day === 66 && onArcComplete ? onArcComplete : onDismiss}
           style={{
             position: 'absolute',
             bottom: 40,

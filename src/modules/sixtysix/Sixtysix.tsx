@@ -8,6 +8,8 @@ import DailyCard from './components/DailyCard'
 import HabitDrawer from './components/HabitDrawer'
 import MilestoneOverlay from './components/MilestoneOverlay'
 import StreakBreakRecovery from './components/StreakBreakRecovery'
+import DayCompleteModal from './components/DayCompleteModal'
+import CatchUpFlow from './components/CatchUpFlow'
 
 const RING_SIZE = 320
 
@@ -16,13 +18,18 @@ function progressRing(pct: number) {
     width: RING_SIZE,
     height: RING_SIZE,
     borderRadius: '50%',
-    background: `conic-gradient(#fff calc(${pct} * 1%), rgba(255,255,255,0.12) 0)`,
+    // --ring-pct is animated via @property in index.css; falls back to static gradient
+    ['--ring-pct' as string]: `${pct}%`,
     position: 'relative' as const,
     display: 'grid',
     placeItems: 'center',
     flexShrink: 0,
   }
 }
+
+const riseIn = (delay: number): React.CSSProperties => ({
+  animation: `rise-in 500ms cubic-bezier(0.16,1,0.3,1) ${delay}ms both`,
+})
 
 export default function Sixtysix() {
   const {
@@ -34,12 +41,18 @@ export default function Sixtysix() {
     showMilestone,
     milestoneDay,
     showStreakBreak,
+    showDayComplete,
+    showCatchUp,
+    catchUpDaysAway,
     setDrawerHabitId,
     dismissMilestone,
     resolveStreakBreak,
     rolloverDay,
     setTodayCard,
     setCurrentScreen,
+    setDayReflection,
+    dismissDayComplete,
+    resolveCatchUp,
   } = useSixtysixStore()
 
   // On mount: rollover day + pull daily card
@@ -130,7 +143,7 @@ export default function Sixtysix() {
       <div style={{ paddingBottom: 96, position: 'relative', zIndex: 1 }}>
 
         {/* Stage: 3-column grid */}
-        <section style={{
+        <section style={{ ...riseIn(0),
           padding: '64px 56px 0',
           display: 'grid',
           gridTemplateColumns: '1fr auto 1fr',
@@ -158,7 +171,7 @@ export default function Sixtysix() {
           </div>
 
           {/* Center: progress ring */}
-          <div style={progressRing(todayPct)}>
+          <div className="progress-ring" style={progressRing(todayPct)}>
             <div style={{
               position: 'absolute', inset: 12,
               background: '#000', borderRadius: '50%',
@@ -204,7 +217,7 @@ export default function Sixtysix() {
         </section>
 
         {/* Phase header with tick bar */}
-        <div style={{
+        <div style={{ ...riseIn(80),
           padding: '32px 56px 0',
           display: 'flex', alignItems: 'center', gap: 24,
         }}>
@@ -231,7 +244,7 @@ export default function Sixtysix() {
         </div>
 
         {/* Habits list */}
-        <section style={{ padding: '40px 56px 0' }}>
+        <section style={{ padding: '40px 56px 0', ...riseIn(160) }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {activeHabits.map(habit => {
               const todayLog = todayLogs.find(l => l.habitId === habit.id)
@@ -293,7 +306,7 @@ export default function Sixtysix() {
         </section>
 
         {/* Aggregate mark grid */}
-        <section style={{ padding: '64px 56px 0', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <section style={{ padding: '64px 56px 0', display: 'flex', flexDirection: 'column', gap: 18, ...riseIn(240) }}>
           <MarkGrid
             logs={logs}
             habits={activeHabits}
@@ -302,7 +315,7 @@ export default function Sixtysix() {
         </section>
 
         {/* Stats section */}
-        <section style={{ padding: '48px 56px 0' }}>
+        <section style={{ padding: '48px 56px 0', ...riseIn(320) }}>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
@@ -370,6 +383,18 @@ export default function Sixtysix() {
               >
                 DEBUG: RESET ONBOARDING
               </button>
+              <button
+                onClick={() => setCurrentScreen('arc-complete')}
+                style={{
+                  fontFamily: "'DM Mono',monospace",
+                  fontSize: 9, letterSpacing: '0.28em',
+                  color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase',
+                  background: 'transparent', border: '1px solid rgba(255,255,255,0.12)',
+                  padding: '8px 16px', cursor: 'pointer',
+                }}
+              >
+                DEBUG: ARC COMPLETE
+              </button>
             </div>
           )}
         </section>
@@ -383,11 +408,23 @@ export default function Sixtysix() {
         onClose={() => setDrawerHabitId(null)}
       />
 
+      {/* Catch-up flow — shown first if user was away 2+ days */}
+      {showCatchUp && (
+        <CatchUpFlow
+          daysAway={catchUpDaysAway}
+          onContinue={resolveCatchUp}
+        />
+      )}
+
       {/* Milestone overlay */}
       {showMilestone && milestoneDay !== null && (
         <MilestoneOverlay
           day={milestoneDay}
           onDismiss={dismissMilestone}
+          onArcComplete={() => {
+            dismissMilestone()
+            setCurrentScreen('arc-complete')
+          }}
         />
       )}
 
@@ -396,6 +433,15 @@ export default function Sixtysix() {
         <StreakBreakRecovery
           arc={arc}
           onResolve={resolveStreakBreak}
+        />
+      )}
+
+      {/* Day complete — identity read + one-word reflection */}
+      {showDayComplete && arc && (
+        <DayCompleteModal
+          identityStatement={arc.identityStatement}
+          onSubmit={setDayReflection}
+          onDismiss={dismissDayComplete}
         />
       )}
     </>
