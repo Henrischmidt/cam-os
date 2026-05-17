@@ -142,61 +142,75 @@ function useFlash(): [boolean, () => void] {
   return [flashing, flash]
 }
 
-// ─── Stepper ──────────────────────────────────────────────────────────────────
+// ─── QuickLog ─────────────────────────────────────────────────────────────────
 
-function Stepper({
-  value,
-  onChange,
-}: {
+interface QuickLogProps {
   value: number
+  target: number
+  unit: string
+  increments: number[]
   onChange: (v: number) => void
-}) {
-  const btnStyle: React.CSSProperties = {
-    width: 48,
-    height: 48,
-    border: 'none',
-    background: 'transparent',
-    color: '#fff',
-    fontFamily: mono,
-    fontSize: 18,
-    cursor: 'pointer',
-    flexShrink: 0,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  }
+}
+
+function QuickLog({ value, target, unit, increments, onChange }: QuickLogProps) {
+  const pct = Math.min(100, target > 0 ? (value / target) * 100 : 0)
+  const atTarget = value >= target
 
   return (
-    <div
-      style={{
-        display: 'inline-flex',
-        border: '1px solid rgba(255,255,255,0.10)',
-        alignItems: 'center',
-      }}
-    >
-      <button style={btnStyle} onClick={() => onChange(Math.max(0, value - 1))}>
-        −
-      </button>
-      <div
-        style={{
-          minWidth: 96,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: mono,
-          fontSize: 14,
-          color: '#fff',
-          letterSpacing: '0.04em',
-          borderLeft: '1px solid rgba(255,255,255,0.10)',
-          borderRight: '1px solid rgba(255,255,255,0.10)',
-          height: 48,
-        }}
-      >
-        {value}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 4 }}>
+      {/* Big value display */}
+      <div style={{ textAlign: 'center', padding: '4px 0' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 8 }}>
+          <span style={{
+            fontFamily: mono, fontSize: 52, letterSpacing: '-0.02em', lineHeight: 1,
+            color: atTarget ? '#fff' : '#fff',
+          }}>{value}</span>
+          <span style={{
+            fontFamily: mono, fontSize: 14, letterSpacing: '0.04em',
+            color: fg40,
+          }}>/ {target} {unit}</span>
+        </div>
+        {/* Progress bar */}
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.10)', marginTop: 10, position: 'relative' }}>
+          <div style={{
+            position: 'absolute', top: 0, left: 0, height: '100%',
+            width: `${pct}%`,
+            background: atTarget ? '#fff' : 'rgba(255,255,255,0.60)',
+            transition: 'width 300ms cubic-bezier(0.16,1,0.3,1)',
+          }} />
+        </div>
       </div>
-      <button style={btnStyle} onClick={() => onChange(value + 1)}>
-        +
-      </button>
+
+      {/* Quick-add buttons */}
+      <div style={{ display: 'flex', gap: 6 }}>
+        {increments.map(inc => (
+          <button
+            key={inc}
+            onClick={() => onChange(Math.min(value + inc, target * 2))}
+            style={{
+              flex: 1,
+              fontFamily: mono, fontSize: 11, letterSpacing: '0.2em',
+              color: fg60, background: 'transparent',
+              border: '1px solid rgba(255,255,255,0.12)',
+              padding: '10px 0', cursor: 'pointer',
+              textTransform: 'uppercase',
+            }}
+          >
+            +{inc}
+          </button>
+        ))}
+        <button
+          onClick={() => onChange(0)}
+          style={{
+            fontFamily: mono, fontSize: 10, letterSpacing: '0.2em',
+            color: fg25, background: 'transparent',
+            border: '1px solid rgba(255,255,255,0.06)',
+            padding: '10px 12px', cursor: 'pointer',
+          }}
+        >
+          ✕
+        </button>
+      </div>
     </div>
   )
 }
@@ -213,6 +227,12 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
   const [flashing, flash] = useFlash()
 
   const today = todayString()
+  // Sync counter to today's logged value when drawer opens or habit changes
+  React.useEffect(() => {
+    if (!habit) return
+    const existing = logs.find(l => l.habitId === habit.id && l.date === todayString() && l.arcId === arc.id)
+    setCounterValue(existing?.value ?? 0)
+  }, [habit?.id]) // eslint-disable-line react-hooks/exhaustive-deps
   const yesterdayDate = (() => {
     const d = new Date(today + 'T12:00:00')
     d.setDate(d.getDate() - 1)
@@ -698,37 +718,40 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
                   ) : (
                     /* Logging state */
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      {/* Counter/timer stepper */}
-                      {habit.type !== 'toggle' && (
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontFamily: mono,
-                              fontSize: 9,
-                              letterSpacing: '0.2em',
-                              color: fg25,
-                              textTransform: 'uppercase',
-                            }}
-                          >
-                            {habit.type === 'timer' ? 'Minutes' : `Value · Target ${habit.target}${habit.unit ?? ''}`}
-                          </span>
-                          <Stepper value={counterValue} onChange={setCounterValue} />
-                        </div>
+
+                      {/* Counter quick-log */}
+                      {habit.type === 'counter' && (
+                        <QuickLog
+                          value={counterValue}
+                          target={habit.target}
+                          unit={habit.unit ?? 'reps'}
+                          increments={[1, 5, 10, 25]}
+                          onChange={setCounterValue}
+                        />
                       )}
 
-                      {/* LOG TODAY button */}
+                      {/* Timer quick-log */}
+                      {habit.type === 'timer' && (
+                        <QuickLog
+                          value={counterValue}
+                          target={habit.target}
+                          unit={habit.unit ?? 'min'}
+                          increments={[5, 10, 20, 30]}
+                          onChange={setCounterValue}
+                        />
+                      )}
+
+                      {/* LOG button */}
                       <button
                         onClick={handleLog}
                         className="habit-drawer-primary-btn"
                         style={primaryBtn}
                       >
-                        Log Today
+                        {habit.type === 'toggle'
+                          ? 'Log Today'
+                          : counterValue >= habit.target
+                            ? `Log · ${counterValue}${habit.unit ? ' ' + habit.unit : ''} ✓`
+                            : `Log · ${counterValue} / ${habit.target}${habit.unit ? ' ' + habit.unit : ''}`}
                       </button>
 
                       {/* Honest miss for yesterday */}

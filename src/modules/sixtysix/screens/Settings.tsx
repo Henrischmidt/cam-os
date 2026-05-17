@@ -184,12 +184,16 @@ export default function Settings() {
     setDayBeginsHour,
     webhookUrl,
     setWebhookUrl,
+    morningRitualUrl,
+    setMorningRitualUrl,
   } = useSixtysixStore()
 
   const isMobile = useIsMobile()
 
   const [webhookInput, setWebhookInput] = useState(webhookUrl)
   const [webhookSaved, setWebhookSaved] = useState(false)
+  const [ritualInput, setRitualInput] = useState(morningRitualUrl)
+  const [ritualSaved, setRitualSaved] = useState(false)
 
   const arcHabits = habits.filter(h => arc ? h.arcId === arc.id && h.active : false)
 
@@ -453,6 +457,58 @@ export default function Settings() {
           </p>
         </>
       )}
+
+      {/* ── MORNING RITUAL ── */}
+      <SectionHeader label="Morning Ritual" />
+
+      <div style={{ borderTop: `1px solid ${rule}`, padding: '20px 0' }}>
+        <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.24em', color: fg40, textTransform: 'uppercase', marginBottom: 12 }}>
+          Spotify / Ritual URL
+        </div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <input
+            type="url"
+            value={ritualInput}
+            onChange={e => { setRitualInput(e.target.value); setRitualSaved(false) }}
+            placeholder="https://open.spotify.com/…"
+            style={{
+              flex: 1,
+              background: 'transparent',
+              border: 'none',
+              borderBottom: `1px solid ${fg25}`,
+              outline: 'none',
+              color: fg60,
+              fontFamily: mono,
+              fontSize: 11,
+              letterSpacing: '0.04em',
+              padding: '8px 0',
+            }}
+          />
+          <button
+            onClick={() => {
+              setMorningRitualUrl(ritualInput.trim())
+              setRitualSaved(true)
+            }}
+            style={{
+              fontFamily: mono,
+              fontSize: 9,
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+              color: ritualSaved ? fg25 : fg60,
+              background: 'transparent',
+              border: `1px solid rgba(255,255,255,0.12)`,
+              padding: '8px 16px',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            {ritualSaved ? 'Saved' : 'Save'}
+          </button>
+        </div>
+        <p style={{ fontFamily: sans, fontSize: 12, color: fg25, lineHeight: 1.6, margin: '10px 0 0' }}>
+          Paste any Spotify album, playlist, or podcast link. Shows as a one-tap launch button on the HUB tab.
+        </p>
+      </div>
 
       {/* ── WEBHOOKS ── */}
       <SectionHeader label="Automations (N8N)" />

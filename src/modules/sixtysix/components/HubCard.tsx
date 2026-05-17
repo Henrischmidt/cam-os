@@ -17,6 +17,7 @@ export default function HubCard() {
     setTodayCard,
     setCurrentTab,
     setCurrentScreen,
+    morningRitualUrl,
   } = useSixtysixStore()
 
   useEffect(() => {
@@ -29,6 +30,8 @@ export default function HubCard() {
   }, [arc, cards, dayBeginsHour, setTodayCard])
 
   if (!arc) return null
+
+  const hasRitual = morningRitualUrl.trim().length > 0
 
   const today = todayString(dayBeginsHour)
   const activeHabits = habits.filter(h => h.arcId === arc.id && h.active)
@@ -54,6 +57,62 @@ export default function HubCard() {
   }
 
   return (
+    <>
+    {/* Morning ritual — Spotify quick-launch */}
+    {hasRitual && (
+      <a
+        href={morningRitualUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          border: '1px solid rgba(255,255,255,0.12)',
+          padding: '20px 24px',
+          textDecoration: 'none',
+          maxWidth: 480,
+          transition: 'border-color 300ms ease',
+          cursor: 'pointer',
+        }}
+      >
+        {/* Spotify-ish icon */}
+        <div style={{
+          width: 40, height: 40, borderRadius: '50%',
+          background: 'rgba(255,255,255,0.06)',
+          border: '1px solid rgba(255,255,255,0.10)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <circle cx="9" cy="9" r="7" stroke="rgba(255,255,255,0.40)" strokeWidth="1" />
+            <path d="M6 6.5 C8.5 5.5 11.5 6 13 7.5" stroke="rgba(255,255,255,0.60)" strokeWidth="1.2" strokeLinecap="round" />
+            <path d="M6.5 9 C8.5 8.2 11 8.6 12.5 9.8" stroke="rgba(255,255,255,0.40)" strokeWidth="1.2" strokeLinecap="round" />
+            <path d="M7 11.5 C8.5 11 10.5 11.2 11.5 12" stroke="rgba(255,255,255,0.25)" strokeWidth="1.2" strokeLinecap="round" />
+          </svg>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontFamily: mono, fontSize: 9, letterSpacing: '0.32em',
+            color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase',
+            marginBottom: 4,
+          }}>
+            MORNING RITUAL
+          </div>
+          <div style={{
+            fontFamily: serif, fontStyle: 'italic', fontSize: 16,
+            color: 'rgba(255,255,255,0.80)',
+          }}>
+            Jim Rohn
+          </div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <polyline points="5,3 9,7 5,11" stroke="rgba(255,255,255,0.25)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </a>
+    )}
+
+    {/* The 66 summary card */}
     <div
       onClick={goToHabits}
       role="button"
@@ -169,5 +228,6 @@ export default function HubCard() {
         </div>
       </div>
     </div>
+    </>
   )
 }

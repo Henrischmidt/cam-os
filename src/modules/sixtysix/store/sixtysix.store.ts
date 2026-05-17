@@ -70,11 +70,12 @@ interface SixtysixState {
   showDayComplete: boolean
   showCatchUp: boolean
   catchUpDaysAway: number
-  dailyReflections: Record<string, string>  // date → one-word
+  dailyReflections: Record<string, string>
   notificationsEnabled: boolean
-  notificationTime: string  // HH:MM
+  notificationTime: string
   webhookUrl: string
-  dayBeginsHour: number   // 0–23, default 4
+  dayBeginsHour: number
+  morningRitualUrl: string
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -108,6 +109,7 @@ interface SixtysixActions {
   setNotificationTime: (time: string) => void
   setWebhookUrl: (url: string) => void
   setDayBeginsHour: (hour: number) => void
+  setMorningRitualUrl: (url: string) => void
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -158,6 +160,7 @@ const initialState: SixtysixState = {
   notificationTime: '21:00',
   webhookUrl: '',
   dayBeginsHour: 4,
+  morningRitualUrl: 'https://open.spotify.com/search/Jim%20Rohn',
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -522,6 +525,8 @@ export const useSixtysixStore = create<SixtysixStore>()(
       setWebhookUrl: (url) => set({ webhookUrl: url }),
 
       setDayBeginsHour: (hour) => set({ dayBeginsHour: hour }),
+
+      setMorningRitualUrl: (url) => set({ morningRitualUrl: url }),
 
       updateIdentityStatement: (statement) => {
         const state = get()
