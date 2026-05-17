@@ -1,0 +1,199 @@
+import React, { useEffect } from 'react'
+import { useSixtysixStore } from './modules/sixtysix/store/sixtysix.store'
+import Sixtysix from './modules/sixtysix/Sixtysix'
+import Onboarding from './modules/sixtysix/screens/Onboarding'
+import Settings from './modules/sixtysix/screens/Settings'
+import History from './modules/sixtysix/screens/History'
+import Cards from './modules/sixtysix/screens/Cards'
+
+// ──────────────────────────────────────────────
+// Tab icon SVGs
+// ──────────────────────────────────────────────
+function HubIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1">
+      <circle cx="9" cy="9" r="6" />
+      <circle cx="9" cy="9" r="2" fill="currentColor" />
+    </svg>
+  )
+}
+function LifeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1">
+      <path d="M9 3 C9 3 4 7 4 11 a5 5 0 0 0 10 0 C14 7 9 3 9 3z" />
+    </svg>
+  )
+}
+function HabitsIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.2">
+      <polyline points="3,9 7,13 15,5" />
+    </svg>
+  )
+}
+function WorkIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1">
+      <rect x="3" y="6" width="12" height="9" />
+      <path d="M6 6 V4 H12 V6" />
+    </svg>
+  )
+}
+function FocusIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1">
+      <circle cx="9" cy="9" r="6" />
+      <circle cx="9" cy="9" r="1" fill="currentColor" />
+    </svg>
+  )
+}
+
+// ──────────────────────────────────────────────
+// Stub screens for other tabs
+// ──────────────────────────────────────────────
+function StubScreen({ label }: { label: string }) {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      minHeight: 'calc(100vh - 96px)',
+      gap: 16,
+    }}>
+      <div style={{
+        fontFamily: "'DM Mono',monospace",
+        fontSize: 10, letterSpacing: '0.34em',
+        color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase',
+      }}>{label}</div>
+      <div style={{
+        fontFamily: "'Instrument Serif',serif",
+        fontStyle: 'italic', fontSize: 24,
+        color: 'rgba(255,255,255,0.25)',
+      }}>Coming soon.</div>
+    </div>
+  )
+}
+
+// ──────────────────────────────────────────────
+// Bottom nav tab definition
+// ──────────────────────────────────────────────
+type Tab = 'hub' | 'life' | 'habits' | 'work' | 'focus'
+
+const NAV_TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
+  { id: 'hub', label: 'HUB', icon: <HubIcon /> },
+  { id: 'life', label: 'LIFE', icon: <LifeIcon /> },
+  { id: 'habits', label: 'HABITS', icon: <HabitsIcon /> },
+  { id: 'work', label: 'WORK', icon: <WorkIcon /> },
+  { id: 'focus', label: 'FOCUS', icon: <FocusIcon /> },
+]
+
+// ──────────────────────────────────────────────
+// App
+// ──────────────────────────────────────────────
+export default function App() {
+  const { arc, currentScreen, currentTab, setCurrentScreen, setCurrentTab } = useSixtysixStore()
+
+  // If no arc, show onboarding
+  useEffect(() => {
+    if (!arc && currentScreen !== 'onboarding') {
+      setCurrentScreen('onboarding')
+    }
+  }, [arc, currentScreen, setCurrentScreen])
+
+  // Keyboard shortcut: Escape closes overlay screens back to habits
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && (currentScreen === 'settings' || currentScreen === 'history' || currentScreen === 'cards')) {
+        setCurrentScreen('habits')
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [currentScreen, setCurrentScreen])
+
+  // When navigating to habits tab, show the habits screen
+  function handleTabClick(tab: Tab) {
+    setCurrentTab(tab)
+    if (tab === 'habits') {
+      setCurrentScreen('habits')
+    }
+  }
+
+  const showNav = arc !== null && currentScreen !== 'onboarding'
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', position: 'relative' }}>
+
+      {/* Onboarding — full screen, highest z-index */}
+      {currentScreen === 'onboarding' && <Onboarding />}
+
+      {/* Settings overlay */}
+      {currentScreen === 'settings' && <Settings />}
+
+      {/* History overlay */}
+      {currentScreen === 'history' && <History />}
+
+      {/* Cards overlay */}
+      {currentScreen === 'cards' && <Cards />}
+
+      {/* Main content area — visible when on habits tab or other tabs */}
+      {arc && currentScreen === 'habits' && currentTab === 'habits' && (
+        <Sixtysix />
+      )}
+
+      {/* Other tab stubs */}
+      {arc && currentScreen === 'habits' && currentTab === 'hub' && <StubScreen label="HUB" />}
+      {arc && currentScreen === 'habits' && currentTab === 'life' && <StubScreen label="LIFE" />}
+      {arc && currentScreen === 'habits' && currentTab === 'work' && <StubScreen label="WORK" />}
+      {arc && currentScreen === 'habits' && currentTab === 'focus' && <StubScreen label="FOCUS" />}
+
+      {/* Bottom nav */}
+      {showNav && (
+        <nav style={{
+          position: 'fixed',
+          left: 0, right: 0, bottom: 0,
+          zIndex: 8,
+          padding: '18px 56px 22px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(5, 1fr)',
+          background: '#000',
+          borderTop: '1px solid rgba(255,255,255,0.05)',
+        }}>
+          {NAV_TABS.map(tab => {
+            const isActive = currentTab === tab.id && (currentScreen === 'habits' || currentScreen === 'settings' || currentScreen === 'history' || currentScreen === 'cards')
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleTabClick(tab.id)}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                  fontFamily: "'DM Mono',monospace",
+                  fontSize: 10, letterSpacing: '0.28em',
+                  color: isActive ? '#fff' : 'rgba(255,255,255,0.40)',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  background: 'transparent',
+                  border: 'none',
+                  padding: '4px 12px',
+                  transition: 'color 200ms ease',
+                  opacity: isActive ? 1 : 0.7,
+                }}
+              >
+                <span style={{ opacity: isActive ? 1 : 0.7 }}>{tab.icon}</span>
+                {isActive ? (
+                  <span style={{
+                    border: '1px solid #fff',
+                    padding: '4px 12px 3px',
+                    marginTop: 2,
+                  }}>{tab.label}</span>
+                ) : (
+                  <span>{tab.label}</span>
+                )}
+              </button>
+            )
+          })}
+        </nav>
+      )}
+    </div>
+  )
+}
