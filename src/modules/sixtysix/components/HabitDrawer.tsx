@@ -3,6 +3,7 @@ import type { Habit, DayLog, Arc } from '../store/sixtysix.store'
 import { useSixtysixStore } from '../store/sixtysix.store'
 import { phaseName, todayString } from '../lib/arcLogic'
 import { hapticLight, hapticMedium } from '../lib/haptics'
+import { useIsMobile } from '../lib/useIsMobile'
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -204,6 +205,7 @@ function Stepper({
 
 export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerProps) {
   const { logHabit, logHonestMiss, honestMissWordMin } = useSixtysixStore()
+  const isMobile = useIsMobile()
 
   const [counterValue, setCounterValue] = useState(0)
   const [showMissForm, setShowMissForm] = useState(false)
@@ -337,8 +339,8 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
           top: 0,
           right: 0,
           bottom: 0,
-          width: 'min(520px, 92vw)',
-          borderLeft: '1px solid rgba(255,255,255,0.18)',
+          width: isMobile ? '100vw' : 'min(520px, 92vw)',
+          borderLeft: isMobile ? 'none' : '1px solid rgba(255,255,255,0.18)',
           background: '#000',
           transform: habit ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 450ms cubic-bezier(0.2,0.7,0.2,1)',
@@ -354,7 +356,7 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '20px 36px',
+            padding: isMobile ? '16px 20px' : '20px 36px',
             borderBottom: '1px solid rgba(255,255,255,0.08)',
             flexShrink: 0,
           }}
@@ -397,7 +399,7 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
             flex: 1,
             minHeight: 0,
             overflowY: 'auto',
-            padding: '32px 36px',
+            padding: isMobile ? '24px 20px' : '32px 36px',
             display: 'flex',
             flexDirection: 'column',
             gap: 30,
@@ -411,7 +413,7 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
                   style={{
                     fontFamily: serif,
                     fontStyle: 'italic',
-                    fontSize: 56,
+                    fontSize: isMobile ? 36 : 56,
                     fontWeight: 400,
                     color: '#fff',
                     margin: '0 0 12px',
@@ -567,7 +569,9 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
         <div
           style={{
             borderTop: '1px solid rgba(255,255,255,0.08)',
-            padding: '20px 36px 28px',
+            padding: isMobile
+              ? `16px 20px calc(24px + env(safe-area-inset-bottom))`
+              : '20px 36px 28px',
             flexShrink: 0,
             display: 'flex',
             flexDirection: 'column',

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import type { HabitType } from '../store/sixtysix.store'
 import { useSixtysixStore } from '../store/sixtysix.store'
+import { useIsMobile } from '../lib/useIsMobile'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -422,6 +423,7 @@ export default function Onboarding() {
   const [triedAdvance, setTriedAdvance] = useState(false)
 
   const createArc = useSixtysixStore(s => s.createArc)
+  const isMobile = useIsMobile()
 
   function changeHabit(index: number, updates: Partial<HabitDef>) {
     setHabits(prev => prev.map((h, i) => (i === index ? { ...h, ...updates } : h)))
@@ -500,7 +502,7 @@ export default function Onboarding() {
       {/* Header */}
       <header
         style={{
-          padding: '28px 48px 0',
+          padding: isMobile ? '20px 20px 0' : '28px 48px 0',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -539,7 +541,7 @@ export default function Onboarding() {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          padding: '0 48px',
+          padding: isMobile ? '0 20px' : '0 48px',
           maxWidth: 720,
           margin: '0 auto',
           width: '100%',
@@ -583,7 +585,9 @@ export default function Onboarding() {
       {/* Footer */}
       <footer
         style={{
-          padding: '0 48px 40px',
+          padding: isMobile
+            ? `0 20px calc(28px + env(safe-area-inset-bottom))`
+            : '0 48px 40px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',

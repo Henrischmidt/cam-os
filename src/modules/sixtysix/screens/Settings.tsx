@@ -6,6 +6,7 @@ import {
   connectICloudFolder,
   disconnectICloudFolder,
 } from '../lib/icloudSync'
+import { useIsMobile } from '../lib/useIsMobile'
 
 // ─── Style tokens ─────────────────────────────────────────────────────────────
 
@@ -185,6 +186,8 @@ export default function Settings() {
     setWebhookUrl,
   } = useSixtysixStore()
 
+  const isMobile = useIsMobile()
+
   const [webhookInput, setWebhookInput] = useState(webhookUrl)
   const [webhookSaved, setWebhookSaved] = useState(false)
 
@@ -210,7 +213,9 @@ export default function Settings() {
         background: '#000',
         zIndex: 70,
         overflowY: 'auto',
-        padding: '40px 56px 100px',
+        padding: isMobile
+          ? `24px 20px calc(80px + env(safe-area-inset-bottom))`
+          : '40px 56px 100px',
       }}
     >
       {/* Back header */}
