@@ -8,7 +8,7 @@ import { writeSnapshot } from '../lib/snapshot'
 export type Phase = 'ignition' | 'friction' | 'groove' | 'lockin'
 export type HabitType = 'toggle' | 'counter' | 'timer'
 export type ArcStatus = 'active' | 'complete' | 'broken'
-export type Screen = 'onboarding' | 'habits' | 'settings' | 'cards' | 'history'
+export type Screen = 'onboarding' | 'habits' | 'settings' | 'cards' | 'history' | 'arc-complete'
 export type Tab = 'hub' | 'life' | 'habits' | 'work' | 'focus'
 export type StreakBreakChoice = 'continue' | 'restart' | 'end' | 'defer'
 
@@ -67,6 +67,10 @@ interface SixtysixState {
   milestoneDay: number | null
   showStreakBreak: boolean
   honestMissWordMin: number
+  showDayComplete: boolean
+  showCatchUp: boolean
+  catchUpDaysAway: number
+  dailyReflections: Record<string, string>  // date → one-word
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -92,6 +96,10 @@ interface SixtysixActions {
   updateHabit: (habitId: string, updates: Partial<Pick<Habit, 'name' | 'target' | 'unit' | 'whyStatement' | 'active'>>) => void
   exportArcData: () => void
   debugAdvanceDay: () => void
+  setDayReflection: (reflection: string) => void
+  dismissDayComplete: () => void
+  resolveCatchUp: () => void
+  updateIdentityStatement: (statement: string) => void
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -134,6 +142,10 @@ const initialState: SixtysixState = {
   milestoneDay: null,
   showStreakBreak: false,
   honestMissWordMin: 5,
+  showDayComplete: false,
+  showCatchUp: false,
+  catchUpDaysAway: 0,
+  dailyReflections: {},
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -227,15 +239,16 @@ export const useSixtysixStore = create<SixtysixStore>()(
         })
 
         let updatedArc = arc
+        let triggerDayComplete = false
         if (allComplete) {
-          // Only increment marks if not already credited today
           const wasAlreadyComplete = allHabitsCompleteToday(arc, habits, logs, logDate)
           if (!wasAlreadyComplete) {
             updatedArc = { ...arc, marks: arc.marks + 1 }
+            triggerDayComplete = true
           }
         }
 
-        set({ logs: newLogs, arc: updatedArc })
+        set({ logs: newLogs, arc: updatedArc, ...(triggerDayComplete ? { showDayComplete: true } : {}) })
         writeSnapshot(updatedArc, habits, newLogs, cards)
       },
 
@@ -280,7 +293,10 @@ export const useSixtysixStore = create<SixtysixStore>()(
         if (!arc || arc.status !== 'active') return
 
         const computedDay = computeCurrentDay(arc.startDate)
-        if (computedDay <= arc.currentDay) return // no rollover needed
+        if (computedDay <= arc.currentDay) return
+
+        const daysAway = computedDay - arc.currentDay
+        const showCatchUp = daysAway > 1
 
         const newDay = computedDay
         const newPhase = dayToPhase(newDay)
@@ -316,6 +332,8 @@ export const useSixtysixStore = create<SixtysixStore>()(
           showMilestone,
           milestoneDay: showMilestone ? newDay : null,
           showStreakBreak: streakBroke,
+          showCatchUp,
+          catchUpDaysAway: showCatchUp ? daysAway : 0,
         })
 
         writeSnapshot(updatedArc, habits, logs, cards)
@@ -451,8 +469,8 @@ export const useSixtysixStore = create<SixtysixStore>()(
         const { arc, habits, logs, cards } = state
         if (!arc) return
 
-        const newDay = Math.min(arc.currentDay + 1, 66)
-        const newPhase = dayToPhase(newDay)
+        const newDay = Math.min(arc.currentDay + 1, 67)
+        const newPhase = dayToPhase(Math.min(newDay, 66))
         const phaseChanged = newPhase !== arc.phase
         const showMilestone = isMilestoneDay(newDay)
 
@@ -461,7 +479,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
           currentDay: newDay,
           phase: newPhase,
           honestMissesUsed: phaseChanged ? 0 : arc.honestMissesUsed,
-          status: newDay >= 66 ? 'complete' : arc.status,
+          status: newDay > 66 ? 'complete' : arc.status,
         }
 
         set({
@@ -470,6 +488,27 @@ export const useSixtysixStore = create<SixtysixStore>()(
           milestoneDay: showMilestone ? newDay : null,
         })
 
+        writeSnapshot(updatedArc, habits, logs, cards)
+      },
+
+      setDayReflection: (reflection) => {
+        const today = todayString()
+        set(state => ({
+          dailyReflections: { ...state.dailyReflections, [today]: reflection.trim() },
+          showDayComplete: false,
+        }))
+      },
+
+      dismissDayComplete: () => set({ showDayComplete: false }),
+
+      resolveCatchUp: () => set({ showCatchUp: false, catchUpDaysAway: 0 }),
+
+      updateIdentityStatement: (statement) => {
+        const state = get()
+        const { arc, habits, logs, cards } = state
+        if (!arc) return
+        const updatedArc = { ...arc, identityStatement: statement }
+        set({ arc: updatedArc })
         writeSnapshot(updatedArc, habits, logs, cards)
       },
     }),

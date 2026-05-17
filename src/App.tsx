@@ -5,6 +5,7 @@ import Onboarding from './modules/sixtysix/screens/Onboarding'
 import Settings from './modules/sixtysix/screens/Settings'
 import History from './modules/sixtysix/screens/History'
 import Cards from './modules/sixtysix/screens/Cards'
+import ArcComplete from './modules/sixtysix/screens/ArcComplete'
 
 // ──────────────────────────────────────────────
 // Tab icon SVGs
@@ -102,7 +103,7 @@ export default function App() {
   // Keyboard shortcut: Escape closes overlay screens back to habits
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape' && (currentScreen === 'settings' || currentScreen === 'history' || currentScreen === 'cards')) {
+      if (e.key === 'Escape' && (currentScreen === 'settings' || currentScreen === 'history' || currentScreen === 'cards' || currentScreen === 'arc-complete')) {
         setCurrentScreen('habits')
       }
     }
@@ -134,6 +135,9 @@ export default function App() {
 
       {/* Cards overlay */}
       {currentScreen === 'cards' && <Cards />}
+
+      {/* Arc complete screen */}
+      {currentScreen === 'arc-complete' && <ArcComplete />}
 
       {/* Main content area — visible when on habits tab or other tabs */}
       {arc && currentScreen === 'habits' && currentTab === 'habits' && (
