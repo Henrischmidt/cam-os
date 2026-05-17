@@ -51,9 +51,11 @@ export default function TickBar({ currentDay, className }: TickBarProps) {
 
   return (
     <svg
-      width={svgWidth}
+      width="100%"
       height={HEIGHT}
       viewBox={`0 0 ${svgWidth} ${HEIGHT}`}
+      preserveAspectRatio="none"
+      style={{ display: 'block' }}
       className={className}
     >
       <defs>
