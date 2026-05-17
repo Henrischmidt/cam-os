@@ -4,7 +4,7 @@ import type { Habit, DayLog } from '../store/sixtysix.store'
 interface HabitRowProps {
   habit: Habit
   todayLog: DayLog | undefined
-  yesterdayLog: DayLog | undefined
+  yesterdayLog: DayLog | undefined | null  // null = before arc start (no miss)
   onClick: () => void
 }
 
@@ -176,8 +176,10 @@ export default function HabitRow({ habit, todayLog, yesterdayLog, onClick }: Hab
   const pct = Math.min(100, (value / habit.target) * 100)
 
   const yesterdayMissed =
-    yesterdayLog === undefined ||
-    (!yesterdayLog.complete && !yesterdayLog.honestMiss)
+    yesterdayLog !== null && (
+      yesterdayLog === undefined ||
+      (!yesterdayLog.complete && !yesterdayLog.honestMiss)
+    )
 
   // Determine chip
   let chipLabel = ''

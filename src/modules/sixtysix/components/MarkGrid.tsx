@@ -6,6 +6,7 @@ interface MarkGridProps {
   logs: DayLog[]
   habits: Habit[]
   arcId: string
+  arcStartDate: string
   className?: string
 }
 
@@ -88,7 +89,7 @@ const STYLES = `
   }
 `
 
-export default function MarkGrid({ logs, habits, arcId, className }: MarkGridProps) {
+export default function MarkGrid({ logs, habits, arcId, arcStartDate, className }: MarkGridProps) {
   const activeHabits = habits.filter(h => h.arcId === arcId && h.active)
   const days = getLast30Days()
   const todayStr = todayString()
@@ -112,7 +113,7 @@ export default function MarkGrid({ logs, habits, arcId, className }: MarkGridPro
 
       let state: CellState
 
-      if (isFuture) {
+      if (isFuture || day < arcStartDate) {
         state = 'empty'
       } else if (log?.complete) {
         state = 'done'

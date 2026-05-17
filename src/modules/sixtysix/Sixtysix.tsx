@@ -248,7 +248,9 @@ export default function Sixtysix() {
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {activeHabits.map(habit => {
               const todayLog = todayLogs.find(l => l.habitId === habit.id)
-              const yesterdayLog = yesterdayLogs.find(l => l.habitId === habit.id)
+              const yesterdayLog = yesterdayStr >= arc.startDate
+                ? yesterdayLogs.find(l => l.habitId === habit.id)
+                : null
               return (
                 <HabitRow
                   key={habit.id}
@@ -311,6 +313,7 @@ export default function Sixtysix() {
             logs={logs}
             habits={activeHabits}
             arcId={arc.id}
+            arcStartDate={arc.startDate}
           />
         </section>
 
