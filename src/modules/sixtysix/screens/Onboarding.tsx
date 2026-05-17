@@ -129,7 +129,7 @@ function HabitRow({ habit, index, canRemove, onChange, onRemove, showNameError }
           flex: 1,
           background: 'transparent',
           border: 'none',
-          borderBottom: `1px solid ${fg12}`,
+          borderBottom: showNameError && !habit.whyStatement.trim() ? '1px solid rgba(255,100,100,0.6)' : `1px solid ${fg12}`,
           outline: 'none',
           fontFamily: serif,
           fontStyle: 'italic',
@@ -443,9 +443,9 @@ export default function Onboarding() {
   const missingWhy = habits.some(h => !h.whyStatement.trim())
 
   function canAdvance(): boolean {
-    if (step === 1) return habits.length >= 3 && habits.every(h => h.name.trim().length > 0)
+    if (step === 1) return habits.length >= 3 && habits.every(h => h.name.trim().length > 0) && habits.every(h => h.whyStatement.trim().length > 0)
     if (step === 2) return identity.trim().length > 0
-    return !missingWhy
+    return true
   }
 
   function back() {
