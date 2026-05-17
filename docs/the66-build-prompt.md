@@ -386,4 +386,111 @@ If you can make a reasonable inference using the design constraints and existing
 
 ---
 
+---
+
+## 18. iPhone-First / PWA Requirements (non-negotiable)
+
+This app is built primarily for iPhone, installed as a PWA via Safari → Add to Home Screen. Every layout and interaction decision must start from this context.
+
+### Viewport & meta tags (add to index.html)
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+```
+
+### Safe areas
+
+All screens must respect the Dynamic Island / notch at top and home indicator at bottom:
+
+```css
+padding-top: env(safe-area-inset-top);
+padding-bottom: env(safe-area-inset-bottom);
+padding-left: env(safe-area-inset-left);
+padding-right: env(safe-area-inset-right);
+```
+
+The root app container must use `min-height: 100dvh` (dynamic viewport height, not `100vh`) so the layout doesn't break when the Safari toolbar shows/hides.
+
+### Touch targets
+
+Every tappable element — habit rows, buttons, toggles, option rows — must have a minimum tap area of **44×44px** per Apple HIG. Use padding to achieve this without affecting visual size.
+
+### Primary target dimensions
+
+- Design for **393×852px** (iPhone 15 / 14 Pro) as the primary canvas
+- Must be fluid down to **375px wide** (iPhone SE)
+- Do not hard-code pixel heights — use flex column + `100dvh` so it adapts
+
+### The four-zone layout
+
+The main Sixtysix.tsx screen must fit entirely within one viewport — no page scroll. Use `display: flex; flex-direction: column; height: 100dvh` with zones taking proportional flex space:
+
+```
+Zone 1 — PhaseHeader:    flex: 0 0 auto   (~80px)
+Zone 2 — Habits:         flex: 1 1 auto   (grows to fill available)
+Zone 3 — MarkGrid:       flex: 0 0 auto   (collapses/expands)
+Zone 4 — DailyCard:      flex: 0 0 auto   (~80px)
+```
+
+Habits zone scrolls internally if content overflows (more than 5 habits).
+
+### No hover states
+
+This is a touch device. Do not use `:hover` as the only visual feedback. Use `:active` for tap feedback — a subtle opacity reduction (0.7) over 100ms.
+
+### PWA manifest (create public/manifest.json)
+
+```json
+{
+  "name": "The 66",
+  "short_name": "The 66",
+  "description": "66-day habit arc",
+  "start_url": "/sixtysix",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
+```
+
+Create placeholder 192×512px black PNG icons if real assets aren't available. The manifest must be linked in index.html: `<link rel="manifest" href="/manifest.json">`.
+
+### Font loading
+
+Load all three fonts from Google Fonts in index.html — do not rely on system fonts:
+
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+```
+
+### Tap-to-complete interaction
+
+Habit rows are the primary interaction surface. The entire row must be tappable (not just a small button). On tap: immediate visual feedback (opacity 0.7 for 100ms), then state update, then progress animation.
+
+### Prevent iOS rubber-band scroll on the root
+
+```css
+body {
+  overscroll-behavior: none;
+  overflow: hidden;
+}
+```
+
+Only the habits zone (if it overflows) should scroll, using `-webkit-overflow-scrolling: touch`.
+
+### Testing note for Claude Code
+
+After building, verify layout at 393×852 using Chrome DevTools device emulator (iPhone 15 Pro preset) before marking acceptance criteria complete. Check: safe areas respected, no content hidden behind Dynamic Island, home indicator clear, all tap targets ≥44px.
+
+---
+
 *End of master spec.*
