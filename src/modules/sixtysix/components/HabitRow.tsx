@@ -219,6 +219,7 @@ export default function HabitRow({ habit, todayLog, yesterdayLog, onClick }: Hab
     paddingLeft: '0px',
     paddingTop: '10px',
     paddingBottom: '10px',
+    minHeight: 44,
     borderBottom: '1px solid rgba(255,255,255,0.05)',
   }
 
