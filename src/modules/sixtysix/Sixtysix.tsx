@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSixtysixStore } from './store/sixtysix.store'
+import type { HabitType } from './store/sixtysix.store'
 import { pullDailyCard } from './lib/cardLogic'
 import { todayString, phaseName, phaseNumber } from './lib/arcLogic'
 import HabitRow from './components/HabitRow'
@@ -54,7 +55,12 @@ export default function Sixtysix() {
     dismissDayComplete,
     resolveCatchUp,
     dayBeginsHour,
+    addHabit,
   } = useSixtysixStore()
+
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [newHabitName, setNewHabitName] = useState('')
+  const [newHabitType, setNewHabitType] = useState<HabitType>('toggle')
 
   // On mount: rollover day + pull daily card
   useEffect(() => {
@@ -262,39 +268,98 @@ export default function Sixtysix() {
                 />
               )
             })}
-            {/* Add habit row */}
-            {activeHabits.length < 5 && (
+            {/* Add habit */}
+            {activeHabits.length < 5 && !showAddForm && (
               <div
                 role="button"
                 tabIndex={0}
-                onClick={() => setCurrentScreen('settings')}
-                onKeyDown={e => { if (e.key === 'Enter') setCurrentScreen('settings') }}
+                onClick={() => setShowAddForm(true)}
+                onKeyDown={e => { if (e.key === 'Enter') setShowAddForm(true) }}
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: '44px 1fr auto auto',
-                  columnGap: 22,
-                  alignItems: 'center',
-                  padding: '22px 0 20px',
-                  borderTop: '1px solid rgba(255,255,255,0.10)',
-                  borderBottom: '1px solid rgba(255,255,255,0.10)',
+                  display: 'flex', alignItems: 'center', gap: 16,
+                  padding: '20px 0',
+                  borderTop: '1px solid rgba(255,255,255,0.08)',
                   cursor: 'pointer',
                 }}
               >
                 <div style={{
                   width: 44, height: 44, borderRadius: 6,
-                  border: '1px dashed rgba(255,255,255,0.10)',
+                  border: '1px dashed rgba(255,255,255,0.12)',
                   display: 'grid', placeItems: 'center',
-                  color: 'rgba(255,255,255,0.40)',
+                  color: 'rgba(255,255,255,0.35)', flexShrink: 0,
                 }}>
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1">
-                    <line x1="9" y1="3" x2="9" y2="15" /><line x1="3" y1="9" x2="15" y2="9" />
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1">
+                    <line x1="7" y1="2" x2="7" y2="12" /><line x1="2" y1="7" x2="12" y2="7" />
                   </svg>
                 </div>
-                <span style={{
-                  fontFamily: "'Instrument Serif',serif",
-                  fontStyle: 'italic', fontSize: 16,
-                  color: 'rgba(255,255,255,0.40)',
-                }}>Add habit</span>
+                <span style={{ fontFamily: "'Instrument Serif',serif", fontStyle: 'italic', fontSize: 15, color: 'rgba(255,255,255,0.35)' }}>
+                  Add habit
+                </span>
+              </div>
+            )}
+            {activeHabits.length < 5 && showAddForm && (
+              <div style={{
+                borderTop: '1px solid rgba(255,255,255,0.08)',
+                padding: '20px 0',
+                display: 'flex', flexDirection: 'column', gap: 14,
+              }}>
+                <input
+                  autoFocus
+                  value={newHabitName}
+                  onChange={e => setNewHabitName(e.target.value)}
+                  placeholder="Habit name"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && newHabitName.trim()) {
+                      addHabit({ name: newHabitName.trim(), type: newHabitType, target: newHabitType === 'toggle' || newHabitType === 'shoot' ? 1 : 1, whyStatement: '' })
+                      setNewHabitName(''); setShowAddForm(false)
+                    }
+                    if (e.key === 'Escape') { setNewHabitName(''); setShowAddForm(false) }
+                  }}
+                  style={{
+                    background: 'transparent', border: 'none',
+                    borderBottom: '1px solid rgba(255,255,255,0.20)',
+                    outline: 'none', color: '#fff',
+                    fontFamily: "'Outfit',sans-serif", fontSize: 16,
+                    padding: '6px 0', width: '100%',
+                  }}
+                />
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {(['toggle','counter','timer','shoot'] as HabitType[]).map(t => (
+                    <button key={t} onClick={() => setNewHabitType(t)} style={{
+                      fontFamily: "'DM Mono',monospace", fontSize: 9, letterSpacing: '0.3em',
+                      textTransform: 'uppercase', padding: '6px 14px', cursor: 'pointer',
+                      border: '1px solid rgba(255,255,255,0.18)',
+                      background: newHabitType === t ? '#fff' : 'transparent',
+                      color: newHabitType === t ? '#000' : 'rgba(255,255,255,0.50)',
+                    }}>{t}</button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button
+                    onClick={() => {
+                      if (newHabitName.trim()) {
+                        addHabit({ name: newHabitName.trim(), type: newHabitType, target: newHabitType === 'toggle' || newHabitType === 'shoot' ? 1 : 1, whyStatement: '' })
+                        setNewHabitName(''); setShowAddForm(false)
+                      }
+                    }}
+                    style={{
+                      fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: '0.32em',
+                      textTransform: 'uppercase', border: '1px solid #fff',
+                      background: 'transparent', color: '#fff',
+                      padding: '12px 24px', cursor: 'pointer',
+                      opacity: newHabitName.trim() ? 1 : 0.35,
+                    }}
+                  >Add</button>
+                  <button
+                    onClick={() => { setNewHabitName(''); setShowAddForm(false) }}
+                    style={{
+                      fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: '0.32em',
+                      textTransform: 'uppercase', border: '1px solid rgba(255,255,255,0.12)',
+                      background: 'transparent', color: 'rgba(255,255,255,0.40)',
+                      padding: '12px 24px', cursor: 'pointer',
+                    }}
+                  >Cancel</button>
+                </div>
               </div>
             )}
           </div>

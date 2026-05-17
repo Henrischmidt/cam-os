@@ -122,7 +122,7 @@ function Chip({ label, variant }: ChipProps) {
       ? 'rgba(255,255,255,0.30)'
       : variant === 'missed'
       ? 'rgba(255,255,255,0.80)'
-      : 'rgba(255,255,255,0.40)'
+      : 'rgba(255,255,255,0.55)'
 
   return (
     <span
@@ -164,7 +164,7 @@ const HOVER_STYLE = `
   }
   .habit-row-icon {
     transition: opacity 400ms ease-out;
-    opacity: 0.7;
+    opacity: 0.85;
   }
 `
 
@@ -244,7 +244,7 @@ export default function HabitRow({ habit, todayLog, yesterdayLog, onClick }: Hab
     fontFamily: "'Outfit', sans-serif",
     fontSize: '14px',
     fontWeight: 400,
-    color: isComplete ? 'rgba(255,255,255,0.40)' : 'rgba(255,255,255,0.80)',
+    color: isComplete ? 'rgba(255,255,255,0.35)' : '#fff',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',

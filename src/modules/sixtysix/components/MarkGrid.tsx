@@ -94,11 +94,12 @@ export default function MarkGrid({ logs, habits, arcId, arcStartDate, className 
   const days = getLast30Days()
   const todayStr = todayString()
 
-  // Compute stats
+  // Compute stats — only count days from arc start to today
   let doneCt = 0
   let honestCt = 0
   let missCt = 0
-  const possibleMarks = days.length * activeHabits.length
+  const arcDaysInWindow = days.filter(d => d >= arcStartDate && d <= todayStr).length
+  const possibleMarks = arcDaysInWindow * activeHabits.length
 
   const cells: Array<{ day: string; habit: Habit; state: CellState }> = []
 

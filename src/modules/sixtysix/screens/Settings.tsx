@@ -192,6 +192,7 @@ export default function Settings() {
 
   const [editIdentity, setEditIdentity] = useState(arc?.identityStatement ?? '')
   const [identitySaved, setIdentitySaved] = useState(false)
+  const [endArcConfirm, setEndArcConfirm] = useState(false)
 
   const syncAvailable = iCloudSyncAvailable()
   const [syncConfigured, setSyncConfigured] = useState(false)
@@ -316,32 +317,30 @@ export default function Settings() {
         />
       </Row>
 
-      {notificationsEnabled && (
-        <Row label="Remind Me At">
-          <input
-            type="time"
-            value={notificationTime}
-            onChange={e => setNotificationTime(e.target.value)}
-            style={{
-              background: 'transparent',
-              border: `1px solid rgba(255,255,255,0.12)`,
-              color: fg60,
-              fontFamily: mono,
-              fontSize: 12,
-              letterSpacing: '0.1em',
-              padding: '8px 14px',
-              outline: 'none',
-              borderRadius: 100,
-            }}
-          />
-        </Row>
-      )}
+      <Row label="Remind Me At">
+        <input
+          type="time"
+          value={notificationTime}
+          onChange={e => setNotificationTime(e.target.value)}
+          disabled={!notificationsEnabled}
+          style={{
+            background: 'transparent',
+            border: `1px solid rgba(255,255,255,0.12)`,
+            color: notificationsEnabled ? fg60 : fg25,
+            fontFamily: mono,
+            fontSize: 12,
+            letterSpacing: '0.1em',
+            padding: '8px 14px',
+            outline: 'none',
+            borderRadius: 100,
+            opacity: notificationsEnabled ? 1 : 0.4,
+          }}
+        />
+      </Row>
 
-      {notificationsEnabled && (
-        <p style={{ fontFamily: sans, fontSize: 12, color: fg25, lineHeight: 1.6, margin: '0 0 4px' }}>
-          Fires once per day if habits aren't complete. Requires CAM OS to be open or installed as a PWA.
-        </p>
-      )}
+      <p style={{ fontFamily: sans, fontSize: 12, color: fg25, lineHeight: 1.6, margin: '0 0 4px' }}>
+        Fires once per day if habits aren't complete. Requires CAM OS to be open or installed as a PWA.
+      </p>
 
       {/* ── DAY ROLLOVER ── */}
       <SectionHeader label="Day Rollover" />
@@ -571,21 +570,52 @@ export default function Settings() {
       </div>
 
       <Row label="End Arc Early">
-        <button
-          style={{
-            fontFamily: mono,
-            fontSize: 10,
-            letterSpacing: '0.28em',
-            textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.30)',
-            background: 'transparent',
-            border: `1px solid rgba(255,255,255,0.08)`,
-            padding: '10px 20px',
-            cursor: 'pointer',
-          }}
-        >
-          End Arc
-        </button>
+        {!endArcConfirm ? (
+          <button
+            onClick={() => setEndArcConfirm(true)}
+            style={{
+              fontFamily: mono, fontSize: 10, letterSpacing: '0.28em',
+              textTransform: 'uppercase', color: 'rgba(255,255,255,0.30)',
+              background: 'transparent', border: `1px solid rgba(255,255,255,0.08)`,
+              padding: '10px 20px', cursor: 'pointer',
+            }}
+          >
+            End Arc
+          </button>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.18em', color: 'rgba(255,255,255,0.50)' }}>
+              Are you sure?
+            </span>
+            <button
+              onClick={() => {
+                // Mark arc as broken and navigate to onboarding
+                useSixtysixStore.getState().resolveStreakBreak('end')
+                setEndArcConfirm(false)
+                setCurrentScreen('onboarding')
+              }}
+              style={{
+                fontFamily: mono, fontSize: 10, letterSpacing: '0.24em',
+                textTransform: 'uppercase', color: 'rgba(255,100,100,0.80)',
+                background: 'transparent', border: `1px solid rgba(255,100,100,0.30)`,
+                padding: '8px 16px', cursor: 'pointer',
+              }}
+            >
+              Yes, End
+            </button>
+            <button
+              onClick={() => setEndArcConfirm(false)}
+              style={{
+                fontFamily: mono, fontSize: 10, letterSpacing: '0.24em',
+                textTransform: 'uppercase', color: 'rgba(255,255,255,0.40)',
+                background: 'transparent', border: `1px solid rgba(255,255,255,0.10)`,
+                padding: '8px 16px', cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
       </Row>
 
       {/* ── ABOUT ── */}

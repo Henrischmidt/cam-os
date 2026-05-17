@@ -395,6 +395,7 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
         <div
           style={{
             flex: 1,
+            minHeight: 0,
             overflowY: 'auto',
             padding: '32px 36px',
             display: 'flex',
@@ -727,7 +728,7 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
                       </button>
 
                       {/* Honest miss for yesterday */}
-                      {yesterdayMissed && (
+                      {yesterdayMissed ? (
                         <button
                           onClick={() => setShowMissForm(true)}
                           className="habit-drawer-ghost-btn"
@@ -735,6 +736,14 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
                         >
                           Honest Miss (Yesterday)
                         </button>
+                      ) : yesterdayBeforeArcStart ? (
+                        <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.2em', color: fg25, textTransform: 'uppercase', textAlign: 'center', paddingTop: 4 }}>
+                          Honest Miss available from Day 2
+                        </div>
+                      ) : (
+                        <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.2em', color: fg25, textTransform: 'uppercase', textAlign: 'center', paddingTop: 4 }}>
+                          Yesterday complete — no miss to log
+                        </div>
                       )}
                     </div>
                   )}
