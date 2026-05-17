@@ -6,7 +6,7 @@ import { writeSnapshot } from '../lib/snapshot'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type Phase = 'ignition' | 'friction' | 'groove' | 'lockin'
-export type HabitType = 'toggle' | 'counter' | 'timer'
+export type HabitType = 'toggle' | 'counter' | 'timer' | 'shoot'
 export type ArcStatus = 'active' | 'complete' | 'broken'
 export type Screen = 'onboarding' | 'habits' | 'settings' | 'cards' | 'history' | 'arc-complete'
 export type Tab = 'hub' | 'life' | 'habits' | 'work' | 'focus'
@@ -73,6 +73,7 @@ interface SixtysixState {
   dailyReflections: Record<string, string>  // date → one-word
   notificationsEnabled: boolean
   notificationTime: string  // HH:MM
+  webhookUrl: string
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -104,6 +105,7 @@ interface SixtysixActions {
   updateIdentityStatement: (statement: string) => void
   setNotificationsEnabled: (enabled: boolean) => void
   setNotificationTime: (time: string) => void
+  setWebhookUrl: (url: string) => void
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -152,6 +154,7 @@ const initialState: SixtysixState = {
   dailyReflections: {},
   notificationsEnabled: false,
   notificationTime: '21:00',
+  webhookUrl: '',
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -203,7 +206,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
         })
 
         const state = get()
-        writeSnapshot(arc, habits, state.logs, state.cards)
+        writeSnapshot(arc, habits, state.logs, state.cards, state.webhookUrl)
       },
 
       logHabit: (habitId, value, date) => {
@@ -255,7 +258,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
         }
 
         set({ logs: newLogs, arc: updatedArc, ...(triggerDayComplete ? { showDayComplete: true } : {}) })
-        writeSnapshot(updatedArc, habits, newLogs, cards)
+        writeSnapshot(updatedArc, habits, newLogs, cards, get().webhookUrl)
       },
 
       logHonestMiss: (habitId, reason, date) => {
@@ -290,7 +293,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
         }
 
         set({ logs: newLogs, arc: updatedArc })
-        writeSnapshot(updatedArc, habits, newLogs, cards)
+        writeSnapshot(updatedArc, habits, newLogs, cards, get().webhookUrl)
       },
 
       rolloverDay: () => {
@@ -342,7 +345,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
           catchUpDaysAway: showCatchUp ? daysAway : 0,
         })
 
-        writeSnapshot(updatedArc, habits, logs, cards)
+        writeSnapshot(updatedArc, habits, logs, cards, get().webhookUrl)
       },
 
       setCurrentScreen: (screen) => set({ currentScreen: screen }),
@@ -370,11 +373,11 @@ export const useSixtysixStore = create<SixtysixStore>()(
             status: 'active',
           }
           set({ arc: updatedArc, showStreakBreak: false, logs: [] })
-          writeSnapshot(updatedArc, habits, [], cards)
+          writeSnapshot(updatedArc, habits, [], cards, get().webhookUrl)
         } else if (choice === 'end') {
           const updatedArc: Arc = { ...arc, status: 'broken' }
           set({ arc: updatedArc, showStreakBreak: false })
-          writeSnapshot(updatedArc, habits, logs, cards)
+          writeSnapshot(updatedArc, habits, logs, cards, get().webhookUrl)
         } else {
           // 'continue' or 'defer' — just dismiss
           set({ showStreakBreak: false })
@@ -393,7 +396,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
           lastPulledDate: today,
         }
         set({ cards: updatedCards })
-        writeSnapshot(state.arc, state.habits, state.logs, updatedCards)
+        writeSnapshot(state.arc, state.habits, state.logs, updatedCards, state.webhookUrl)
       },
 
       toggleHardMode: () => {
@@ -402,7 +405,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
         if (!arc) return
         const updatedArc = { ...arc, hardMode: !arc.hardMode }
         set({ arc: updatedArc })
-        writeSnapshot(updatedArc, habits, logs, cards)
+        writeSnapshot(updatedArc, habits, logs, cards, get().webhookUrl)
       },
 
       setHonestMissWordMin: (min) => set({ honestMissWordMin: min }),
@@ -426,7 +429,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
 
         const newHabits = [...habits, newHabit]
         set({ habits: newHabits })
-        writeSnapshot(arc, newHabits, logs, cards)
+        writeSnapshot(arc, newHabits, logs, cards, get().webhookUrl)
       },
 
       removeHabit: (habitId) => {
@@ -435,7 +438,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
         if (!arc) return
         const newHabits = habits.filter(h => h.id !== habitId)
         set({ habits: newHabits })
-        writeSnapshot(arc, newHabits, logs, cards)
+        writeSnapshot(arc, newHabits, logs, cards, get().webhookUrl)
       },
 
       updateHabit: (habitId, updates) => {
@@ -446,7 +449,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
           h.id === habitId ? { ...h, ...updates } : h
         )
         set({ habits: newHabits })
-        writeSnapshot(arc, newHabits, logs, cards)
+        writeSnapshot(arc, newHabits, logs, cards, get().webhookUrl)
       },
 
       exportArcData: () => {
@@ -494,7 +497,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
           milestoneDay: showMilestone ? newDay : null,
         })
 
-        writeSnapshot(updatedArc, habits, logs, cards)
+        writeSnapshot(updatedArc, habits, logs, cards, get().webhookUrl)
       },
 
       setDayReflection: (reflection) => {
@@ -513,13 +516,15 @@ export const useSixtysixStore = create<SixtysixStore>()(
 
       setNotificationTime: (time) => set({ notificationTime: time }),
 
+      setWebhookUrl: (url) => set({ webhookUrl: url }),
+
       updateIdentityStatement: (statement) => {
         const state = get()
         const { arc, habits, logs, cards } = state
         if (!arc) return
         const updatedArc = { ...arc, identityStatement: statement }
         set({ arc: updatedArc })
-        writeSnapshot(updatedArc, habits, logs, cards)
+        writeSnapshot(updatedArc, habits, logs, cards, get().webhookUrl)
       },
     }),
     {

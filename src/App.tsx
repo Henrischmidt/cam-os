@@ -7,6 +7,7 @@ import Settings from './modules/sixtysix/screens/Settings'
 import History from './modules/sixtysix/screens/History'
 import Cards from './modules/sixtysix/screens/Cards'
 import ArcComplete from './modules/sixtysix/screens/ArcComplete'
+import HubCard from './modules/sixtysix/components/HubCard'
 
 // ──────────────────────────────────────────────
 // Tab icon SVGs
@@ -180,7 +181,26 @@ export default function App() {
       )}
 
       {/* Other tab stubs */}
-      {arc && currentScreen === 'habits' && currentTab === 'hub' && <StubScreen label="HUB" />}
+      {arc && currentScreen === 'habits' && currentTab === 'hub' && (
+        <div style={{
+          minHeight: 'calc(100vh - 96px)',
+          padding: '56px 56px 96px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 40,
+        }}>
+          <div style={{
+            fontFamily: "'DM Mono', monospace",
+            fontSize: 10,
+            letterSpacing: '0.32em',
+            color: 'rgba(255,255,255,0.30)',
+            textTransform: 'uppercase',
+          }}>
+            HUB
+          </div>
+          <HubCard />
+        </div>
+      )}
       {arc && currentScreen === 'habits' && currentTab === 'life' && <StubScreen label="LIFE" />}
       {arc && currentScreen === 'habits' && currentTab === 'work' && <StubScreen label="WORK" />}
       {arc && currentScreen === 'habits' && currentTab === 'focus' && <StubScreen label="FOCUS" />}

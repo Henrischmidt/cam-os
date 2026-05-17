@@ -68,7 +68,7 @@ interface HabitRowProps {
 }
 
 function HabitRow({ habit, index, canRemove, onChange, onRemove }: HabitRowProps) {
-  const types: HabitType[] = ['toggle', 'counter', 'timer']
+  const types: HabitType[] = ['toggle', 'counter', 'timer', 'shoot']
 
   return (
     <div
@@ -143,7 +143,7 @@ function HabitRow({ habit, index, canRemove, onChange, onRemove }: HabitRowProps
           {types.map(t => (
             <button
               key={t}
-              onClick={() => onChange(index, { type: t })}
+              onClick={() => onChange(index, { type: t, target: (t === 'toggle' || t === 'shoot') ? 1 : habit.target })}
               style={{
                 fontFamily: mono,
                 fontSize: 9,
@@ -162,7 +162,7 @@ function HabitRow({ habit, index, canRemove, onChange, onRemove }: HabitRowProps
           ))}
         </div>
 
-        {habit.type !== 'toggle' && (
+        {habit.type !== 'toggle' && habit.type !== 'shoot' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input
               type="number"

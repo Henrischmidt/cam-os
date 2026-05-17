@@ -69,9 +69,22 @@ function TimerIcon({ dim }: { dim: boolean }) {
   )
 }
 
+function ShootIcon({ dim }: { dim: boolean }) {
+  const color = dim ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.60)'
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <rect x="2" y="6" width="16" height="11" rx="1.5" stroke={color} strokeWidth="1" />
+      <circle cx="10" cy="11.5" r="3" stroke={color} strokeWidth="1" />
+      <path d="M7 6 L8.5 3.5 H11.5 L13 6" stroke={color} strokeWidth="1" strokeLinejoin="round" />
+      <circle cx="15" cy="8.5" r="1" fill={color} />
+    </svg>
+  )
+}
+
 function HabitIcon({ type, dim }: { type: Habit['type']; dim: boolean }) {
   if (type === 'toggle') return <ToggleIcon dim={dim} />
   if (type === 'timer') return <TimerIcon dim={dim} />
+  if (type === 'shoot') return <ShootIcon dim={dim} />
   return <CounterIcon dim={dim} />
 }
 
@@ -171,7 +184,7 @@ export default function HabitRow({ habit, todayLog, yesterdayLog, onClick }: Hab
   let chipVariant: ChipProps['variant'] = 'default'
 
   if (isComplete) {
-    chipLabel = 'DONE'
+    chipLabel = habit.type === 'shoot' ? 'SHOT' : 'DONE'
     chipVariant = 'done'
   } else if (yesterdayMissed) {
     chipLabel = 'YESTERDAY MISSED'
@@ -180,6 +193,8 @@ export default function HabitRow({ habit, todayLog, yesterdayLog, onClick }: Hab
     const unit = habit.unit ?? ''
     if (habit.type === 'toggle') {
       chipLabel = `DAILY`
+    } else if (habit.type === 'shoot') {
+      chipLabel = `SHOOT · DAILY`
     } else if (habit.type === 'timer') {
       chipLabel = `TIMER · ${habit.target}${unit}`
     } else {

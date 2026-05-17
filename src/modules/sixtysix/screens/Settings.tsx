@@ -179,7 +179,12 @@ export default function Settings() {
     updateHabit,
     setNotificationsEnabled,
     setNotificationTime,
+    webhookUrl,
+    setWebhookUrl,
   } = useSixtysixStore()
+
+  const [webhookInput, setWebhookInput] = useState(webhookUrl)
+  const [webhookSaved, setWebhookSaved] = useState(false)
 
   const arcHabits = habits.filter(h => arc ? h.arcId === arc.id && h.active : false)
 
@@ -432,6 +437,58 @@ export default function Settings() {
           </p>
         </>
       )}
+
+      {/* ── WEBHOOKS ── */}
+      <SectionHeader label="Automations (N8N)" />
+
+      <div style={{ borderTop: `1px solid ${rule}`, padding: '20px 0' }}>
+        <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.24em', color: fg40, textTransform: 'uppercase', marginBottom: 12 }}>
+          Webhook URL
+        </div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <input
+            type="url"
+            value={webhookInput}
+            onChange={e => { setWebhookInput(e.target.value); setWebhookSaved(false) }}
+            placeholder="https://your-n8n.com/webhook/…"
+            style={{
+              flex: 1,
+              background: 'transparent',
+              border: 'none',
+              borderBottom: `1px solid ${fg25}`,
+              outline: 'none',
+              color: fg60,
+              fontFamily: mono,
+              fontSize: 11,
+              letterSpacing: '0.04em',
+              padding: '8px 0',
+            }}
+          />
+          <button
+            onClick={() => {
+              setWebhookUrl(webhookInput.trim())
+              setWebhookSaved(true)
+            }}
+            style={{
+              fontFamily: mono,
+              fontSize: 9,
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+              color: webhookSaved ? fg25 : fg60,
+              background: 'transparent',
+              border: `1px solid rgba(255,255,255,0.12)`,
+              padding: '8px 16px',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            {webhookSaved ? 'Saved' : 'Save'}
+          </button>
+        </div>
+        <p style={{ fontFamily: sans, fontSize: 12, color: fg25, lineHeight: 1.6, margin: '10px 0 0' }}>
+          CAM OS POSTs the full snapshot JSON to this URL after every habit log, rollover, and arc event. Use it to trigger N8N flows.
+        </p>
+      </div>
 
       {/* ── HABITS ── */}
       <SectionHeader label="Manage Habits" />

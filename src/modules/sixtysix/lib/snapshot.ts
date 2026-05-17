@@ -2,6 +2,7 @@ import type { Arc, Habit, DayLog, CardCollection } from '../store/sixtysix.store
 import { getCard } from './cardLogic'
 import { todayString } from './arcLogic'
 import { writeToICloud } from './icloudSync'
+import { fireWebhook } from './webhook'
 
 const SNAPSHOT_KEY = 'cam-os-sixtysix-snapshot'
 
@@ -31,7 +32,8 @@ export function writeSnapshot(
   arc: Arc | null,
   habits: Habit[],
   logs: DayLog[],
-  cards: CardCollection
+  cards: CardCollection,
+  webhookUrl = ''
 ): void {
   if (!arc) return
 
@@ -78,8 +80,8 @@ export function writeSnapshot(
     // localStorage might be unavailable
   }
 
-  // Fire-and-forget — silently no-ops if not configured
   writeToICloud(json).catch(() => {})
+  fireWebhook(webhookUrl, snapshot).catch(() => {})
 }
 
 function computeStreak(arc: Arc, logs: DayLog[]): number {

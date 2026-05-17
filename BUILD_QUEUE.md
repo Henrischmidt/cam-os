@@ -2,11 +2,11 @@
 
 ## NEXT UP (work on this tonight)
 
-Phase 7 — CAM OS integration (Habits surface to Hub, N8N webhook endpoint, Shoot habit type)
+(empty — all phases complete. Waiting for Cam's review of PRs #1–#6.)
 
 ## QUEUED
 
-(empty — Phase 7 is the final phase)
+(empty)
 
 ## COMPLETED
 
@@ -17,6 +17,7 @@ Phase 3 — Behavioural layer (complete — PR open)
 Phase 4 — iCloud sync helper (complete — PR open)
 Phase 5 — Scriptable widget scripts (complete — PR open)
 Phase 6 — Polish pass (complete — PR open)
+Phase 7 — CAM OS integration (complete — PR open)
 
 ## BLOCKED
 
