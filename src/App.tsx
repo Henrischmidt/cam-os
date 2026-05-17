@@ -159,7 +159,7 @@ export default function App() {
   const showNav = arc !== null && currentScreen !== 'onboarding'
 
   return (
-    <div style={{ height: '100dvh', overflow: 'hidden', background: '#000', color: '#fff', position: 'relative' }}>
+    <div style={{ height: '100dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: '#000', color: '#fff', position: 'relative' }}>
 
       {/* Onboarding — full screen, highest z-index */}
       {currentScreen === 'onboarding' && <Onboarding />}
