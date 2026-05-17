@@ -169,12 +169,16 @@ export default function Settings() {
     arc,
     habits,
     honestMissWordMin,
+    notificationsEnabled,
+    notificationTime,
     setCurrentScreen,
     toggleHardMode,
     setHonestMissWordMin,
     exportArcData,
     updateIdentityStatement,
     updateHabit,
+    setNotificationsEnabled,
+    setNotificationTime,
   } = useSixtysixStore()
 
   const arcHabits = habits.filter(h => arc ? h.arcId === arc.id && h.active : false)
@@ -284,6 +288,51 @@ export default function Settings() {
           }}
         >
           Honesty disabled. Any missed day resets the streak.
+        </p>
+      )}
+
+      {/* ── NOTIFICATIONS ── */}
+      <SectionHeader label="Notifications" />
+
+      <Row label="Daily Reminder">
+        <ToggleSwitch
+          on={notificationsEnabled}
+          onToggle={async () => {
+            if (!notificationsEnabled) {
+              if (typeof Notification === 'undefined') return
+              const perm = await Notification.requestPermission()
+              if (perm === 'granted') setNotificationsEnabled(true)
+            } else {
+              setNotificationsEnabled(false)
+            }
+          }}
+        />
+      </Row>
+
+      {notificationsEnabled && (
+        <Row label="Remind Me At">
+          <input
+            type="time"
+            value={notificationTime}
+            onChange={e => setNotificationTime(e.target.value)}
+            style={{
+              background: 'transparent',
+              border: `1px solid rgba(255,255,255,0.12)`,
+              color: fg60,
+              fontFamily: mono,
+              fontSize: 12,
+              letterSpacing: '0.1em',
+              padding: '8px 14px',
+              outline: 'none',
+              borderRadius: 100,
+            }}
+          />
+        </Row>
+      )}
+
+      {notificationsEnabled && (
+        <p style={{ fontFamily: sans, fontSize: 12, color: fg25, lineHeight: 1.6, margin: '0 0 4px' }}>
+          Fires once per day if habits aren't complete. Requires CAM OS to be open or installed as a PWA.
         </p>
       )}
 

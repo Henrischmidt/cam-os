@@ -53,6 +53,7 @@ export default function ArcComplete() {
         flexDirection: 'column',
         alignItems: 'center',
         padding: '80px 56px 100px',
+        animation: 'scale-in 600ms cubic-bezier(0.16,1,0.3,1) both',
       }}
     >
       {/* Dot matrix */}

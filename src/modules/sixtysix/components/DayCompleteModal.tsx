@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { hapticSuccess } from '../lib/haptics'
 
 const mono = "'DM Mono', monospace"
 const serif = "'Instrument Serif', serif"
@@ -128,7 +129,7 @@ export default function DayCompleteModal({ identityStatement, onSubmit, onDismis
         </button>
 
         <button
-          onClick={() => { if (trimmed) onSubmit(trimmed) }}
+          onClick={() => { if (trimmed) { hapticSuccess(); onSubmit(trimmed) } }}
           disabled={!trimmed}
           style={{
             fontFamily: mono,
