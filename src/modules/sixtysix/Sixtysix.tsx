@@ -87,7 +87,11 @@ function MarksGrid({ marks }: { marks: number }) {
   return (
     <>
       <style>{MARKS_PULSE_CSS}</style>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(10, 4px)',
+        gap: 6,
+      }}>
         {Array.from({ length: totalDots }, (_, i) => {
           const filled = i < marks
           const isLatest = filled && i === marks - 1
@@ -267,7 +271,10 @@ export default function Sixtysix() {
                 fontFamily: mono, fontSize: 9, letterSpacing: '0.32em',
                 color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase',
                 background: 'transparent', border: 'none', cursor: 'pointer',
-                padding: '4px 0',
+                padding: '12px 8px',
+                minHeight: 44,
+                display: 'flex',
+                alignItems: 'center',
               }}
             >
               SETTINGS
@@ -319,12 +326,7 @@ export default function Sixtysix() {
         </div>
 
         {/* ── ZONE 2: Habits list (scrollable) ─────────────────────────── */}
-        <div style={{
-          flex: '1 1 auto',
-          overflowY: 'auto',
-          WebkitOverflowScrolling: 'touch' as unknown as undefined,
-          padding: '0 20px',
-        } as React.CSSProperties}>
+        <div className="zone-habits-scroll" style={{ flex: '1 1 auto', overflowY: 'auto', padding: '0 20px' }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {activeHabits.map(habit => {
               const todayLog = todayLogs.find(l => l.habitId === habit.id)
