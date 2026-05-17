@@ -218,7 +218,7 @@ export default function Settings() {
         zIndex: 70,
         overflowY: 'auto',
         padding: isMobile
-          ? `24px 20px calc(80px + env(safe-area-inset-bottom))`
+          ? `calc(env(safe-area-inset-top) + 20px) 20px calc(80px + env(safe-area-inset-bottom))`
           : '40px 56px 100px',
       }}
     >

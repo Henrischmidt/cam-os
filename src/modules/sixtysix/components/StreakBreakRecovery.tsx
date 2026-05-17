@@ -153,7 +153,7 @@ export default function StreakBreakRecovery({ arc, onResolve }: StreakBreakRecov
         background: '#000',
         zIndex: 80,
         overflowY: 'auto',
-        padding: '60px 48px',
+        padding: 'calc(env(safe-area-inset-top) + 32px) 20px calc(env(safe-area-inset-bottom) + 32px)',
         display: 'flex',
         justifyContent: 'center',
       }}

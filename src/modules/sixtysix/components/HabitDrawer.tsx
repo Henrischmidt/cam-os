@@ -343,11 +343,11 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
           20% { opacity: 0.85; }
           100% { opacity: 0; }
         }
-        .habit-drawer-primary-btn:hover {
+        .habit-drawer-primary-btn:active {
           background: #fff !important;
           color: #000 !important;
         }
-        .habit-drawer-ghost-btn:hover {
+        .habit-drawer-ghost-btn:active {
           background: rgba(255,255,255,0.04) !important;
         }
       `}</style>
@@ -376,7 +376,7 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: isMobile ? '16px 20px' : '20px 36px',
+            padding: isMobile ? 'calc(env(safe-area-inset-top) + 16px) 20px 16px' : '20px 36px',
             borderBottom: '1px solid rgba(255,255,255,0.08)',
             flexShrink: 0,
           }}
