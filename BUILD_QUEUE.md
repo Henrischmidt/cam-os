@@ -2,11 +2,10 @@
 
 ## NEXT UP (work on this tonight)
 
-Phase 5 — Scriptable widget scripts (small, medium, large, lock screen)
+Phase 6 — Polish pass (animations refined, haptic hooks, notification placeholders)
 
 ## QUEUED
 
-Phase 6 — Polish pass (animations refined, haptic hooks, notification placeholders)
 Phase 7 — CAM OS integration (Habits surface to Hub, N8N webhook endpoint, Shoot habit type)
 
 ## COMPLETED
@@ -16,6 +15,7 @@ Phase 1 — Claude Design mockups (pending Cam — HTML files to be added to /mo
 Phase 2 — Core React module (complete — PR open)
 Phase 3 — Behavioural layer (complete — PR open)
 Phase 4 — iCloud sync helper (complete — PR open)
+Phase 5 — Scriptable widget scripts (complete — PR open)
 
 ## BLOCKED
 
