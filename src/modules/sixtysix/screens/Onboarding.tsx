@@ -117,6 +117,26 @@ function HabitRow({ habit, index, canRemove, onChange, onRemove }: HabitRowProps
         )}
       </div>
 
+      {/* Why statement */}
+      <input
+        value={habit.whyStatement}
+        onChange={e => onChange(index, { whyStatement: e.target.value })}
+        placeholder="Why this habit? (required)"
+        style={{
+          flex: 1,
+          background: 'transparent',
+          border: 'none',
+          borderBottom: `1px solid ${fg12}`,
+          outline: 'none',
+          fontFamily: serif,
+          fontStyle: 'italic',
+          fontSize: 15,
+          color: habit.whyStatement ? fg60 : fg25,
+          padding: '6px 0',
+          width: '100%',
+        }}
+      />
+
       {/* Type toggle + target */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', gap: 4 }}>
@@ -412,10 +432,12 @@ export default function Onboarding() {
     ])
   }
 
+  const missingWhy = habits.some(h => !h.whyStatement.trim())
+
   function canAdvance(): boolean {
     if (step === 1) return habits.length >= 3 && habits.every(h => h.name.trim().length > 0)
     if (step === 2) return identity.trim().length > 0
-    return true
+    return !missingWhy
   }
 
   function back() {
@@ -528,7 +550,26 @@ export default function Onboarding() {
           />
         )}
         {step === 2 && <Screen2 identity={identity} setIdentity={setIdentity} />}
-        {step === 3 && <Screen3 />}
+        {step === 3 && (
+          <>
+            <Screen3 />
+            {missingWhy && (
+              <div
+                style={{
+                  marginTop: 32,
+                  fontFamily: mono,
+                  fontSize: 10,
+                  letterSpacing: '0.22em',
+                  color: fg40,
+                  textTransform: 'uppercase',
+                  textAlign: 'center',
+                }}
+              >
+                ← Go back and add a why for each habit.
+              </div>
+            )}
+          </>
+        )}
       </main>
 
       {/* Footer */}

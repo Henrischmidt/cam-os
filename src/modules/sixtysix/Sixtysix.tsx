@@ -8,6 +8,8 @@ import DailyCard from './components/DailyCard'
 import HabitDrawer from './components/HabitDrawer'
 import MilestoneOverlay from './components/MilestoneOverlay'
 import StreakBreakRecovery from './components/StreakBreakRecovery'
+import DayCompleteModal from './components/DayCompleteModal'
+import CatchUpFlow from './components/CatchUpFlow'
 
 const RING_SIZE = 320
 
@@ -34,12 +36,18 @@ export default function Sixtysix() {
     showMilestone,
     milestoneDay,
     showStreakBreak,
+    showDayComplete,
+    showCatchUp,
+    catchUpDaysAway,
     setDrawerHabitId,
     dismissMilestone,
     resolveStreakBreak,
     rolloverDay,
     setTodayCard,
     setCurrentScreen,
+    setDayReflection,
+    dismissDayComplete,
+    resolveCatchUp,
   } = useSixtysixStore()
 
   // On mount: rollover day + pull daily card
@@ -370,6 +378,18 @@ export default function Sixtysix() {
               >
                 DEBUG: RESET ONBOARDING
               </button>
+              <button
+                onClick={() => setCurrentScreen('arc-complete')}
+                style={{
+                  fontFamily: "'DM Mono',monospace",
+                  fontSize: 9, letterSpacing: '0.28em',
+                  color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase',
+                  background: 'transparent', border: '1px solid rgba(255,255,255,0.12)',
+                  padding: '8px 16px', cursor: 'pointer',
+                }}
+              >
+                DEBUG: ARC COMPLETE
+              </button>
             </div>
           )}
         </section>
@@ -383,11 +403,23 @@ export default function Sixtysix() {
         onClose={() => setDrawerHabitId(null)}
       />
 
+      {/* Catch-up flow — shown first if user was away 2+ days */}
+      {showCatchUp && (
+        <CatchUpFlow
+          daysAway={catchUpDaysAway}
+          onContinue={resolveCatchUp}
+        />
+      )}
+
       {/* Milestone overlay */}
       {showMilestone && milestoneDay !== null && (
         <MilestoneOverlay
           day={milestoneDay}
           onDismiss={dismissMilestone}
+          onArcComplete={() => {
+            dismissMilestone()
+            setCurrentScreen('arc-complete')
+          }}
         />
       )}
 
@@ -396,6 +428,15 @@ export default function Sixtysix() {
         <StreakBreakRecovery
           arc={arc}
           onResolve={resolveStreakBreak}
+        />
+      )}
+
+      {/* Day complete — identity read + one-word reflection */}
+      {showDayComplete && arc && (
+        <DayCompleteModal
+          identityStatement={arc.identityStatement}
+          onSubmit={setDayReflection}
+          onDismiss={dismissDayComplete}
         />
       )}
     </>

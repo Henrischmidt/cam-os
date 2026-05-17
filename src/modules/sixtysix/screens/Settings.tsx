@@ -1,3 +1,4 @@
+import React, { useState } from 'react'
 import { useSixtysixStore } from '../store/sixtysix.store'
 
 // ─── Style tokens ─────────────────────────────────────────────────────────────
@@ -166,9 +167,14 @@ export default function Settings() {
     toggleHardMode,
     setHonestMissWordMin,
     exportArcData,
+    updateIdentityStatement,
+    updateHabit,
   } = useSixtysixStore()
 
   const arcHabits = habits.filter(h => arc ? h.arcId === arc.id && h.active : false)
+
+  const [editIdentity, setEditIdentity] = useState(arc?.identityStatement ?? '')
+  const [identitySaved, setIdentitySaved] = useState(false)
 
   return (
     <div
@@ -414,6 +420,178 @@ export default function Settings() {
           End Arc
         </button>
       </Row>
+
+      {/* ── ABOUT ── */}
+      <SectionHeader label="About This Arc" />
+
+      {arc && (
+        <div style={{ borderTop: `1px solid ${rule}`, padding: '24px 0' }}>
+          <div
+            style={{
+              fontFamily: mono,
+              fontSize: 9,
+              letterSpacing: '0.24em',
+              color: fg25,
+              textTransform: 'uppercase',
+              marginBottom: 8,
+            }}
+          >
+            Arc start · {arc.startDate}
+          </div>
+
+          {/* Editable identity statement */}
+          <div style={{ marginTop: 24, marginBottom: 32 }}>
+            <div
+              style={{
+                fontFamily: mono,
+                fontSize: 10,
+                letterSpacing: '0.28em',
+                color: fg40,
+                textTransform: 'uppercase',
+                marginBottom: 12,
+              }}
+            >
+              Identity Statement
+            </div>
+            <div
+              style={{
+                fontFamily: "'Instrument Serif', serif",
+                fontStyle: 'italic',
+                fontSize: 15,
+                color: fg60,
+                marginBottom: 10,
+              }}
+            >
+              By Day 66, I'll be the kind of person who
+            </div>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+              <input
+                value={editIdentity}
+                onChange={e => {
+                  setEditIdentity(e.target.value)
+                  setIdentitySaved(false)
+                }}
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: `1px solid ${fg25}`,
+                  outline: 'none',
+                  fontFamily: "'Instrument Serif', serif",
+                  fontStyle: 'italic',
+                  fontSize: 18,
+                  color: '#fff',
+                  padding: '8px 0',
+                }}
+              />
+              <button
+                onClick={() => {
+                  if (editIdentity.trim()) {
+                    updateIdentityStatement(editIdentity.trim())
+                    setIdentitySaved(true)
+                  }
+                }}
+                style={{
+                  fontFamily: mono,
+                  fontSize: 9,
+                  letterSpacing: '0.24em',
+                  textTransform: 'uppercase',
+                  color: identitySaved ? fg25 : fg60,
+                  background: 'transparent',
+                  border: `1px solid rgba(255,255,255,0.12)`,
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                {identitySaved ? 'Saved' : 'Save'}
+              </button>
+            </div>
+          </div>
+
+          {/* Per-habit why statements */}
+          <div
+            style={{
+              fontFamily: mono,
+              fontSize: 10,
+              letterSpacing: '0.28em',
+              color: fg40,
+              textTransform: 'uppercase',
+              marginBottom: 16,
+            }}
+          >
+            Why Statements
+          </div>
+
+          {arcHabits.map(h => (
+            <WhyRow key={h.id} habit={h} onSave={(why) => updateHabit(h.id, { whyStatement: why })} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Why row (inline editable) ────────────────────────────────────────────────
+
+function WhyRow({ habit, onSave }: { habit: { id: string; name: string; whyStatement: string }; onSave: (why: string) => void }) {
+  const [value, setValue] = useState(habit.whyStatement)
+  const [saved, setSaved] = useState(false)
+
+  return (
+    <div style={{ borderTop: `1px solid rgba(255,255,255,0.06)`, padding: '16px 0' }}>
+      <div
+        style={{
+          fontFamily: "'Outfit', sans-serif",
+          fontSize: 13,
+          color: 'rgba(255,255,255,0.50)',
+          marginBottom: 8,
+        }}
+      >
+        {habit.name}
+      </div>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+        <input
+          value={value}
+          onChange={e => {
+            setValue(e.target.value)
+            setSaved(false)
+          }}
+          placeholder="Why this habit?"
+          style={{
+            flex: 1,
+            background: 'transparent',
+            border: 'none',
+            borderBottom: `1px solid rgba(255,255,255,0.15)`,
+            outline: 'none',
+            fontFamily: "'Instrument Serif', serif",
+            fontStyle: 'italic',
+            fontSize: 15,
+            color: '#fff',
+            padding: '6px 0',
+          }}
+        />
+        <button
+          onClick={() => {
+            onSave(value.trim())
+            setSaved(true)
+          }}
+          style={{
+            fontFamily: "'DM Mono', monospace",
+            fontSize: 9,
+            letterSpacing: '0.24em',
+            textTransform: 'uppercase',
+            color: saved ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.60)',
+            background: 'transparent',
+            border: `1px solid rgba(255,255,255,0.12)`,
+            padding: '8px 16px',
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          {saved ? 'Saved' : 'Save'}
+        </button>
+      </div>
     </div>
   )
 }
