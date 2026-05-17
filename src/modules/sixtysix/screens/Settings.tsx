@@ -1,5 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSixtysixStore } from '../store/sixtysix.store'
+import {
+  iCloudSyncAvailable,
+  iCloudSyncConfigured,
+  connectICloudFolder,
+  disconnectICloudFolder,
+} from '../lib/icloudSync'
 
 // ─── Style tokens ─────────────────────────────────────────────────────────────
 
@@ -176,6 +182,14 @@ export default function Settings() {
   const [editIdentity, setEditIdentity] = useState(arc?.identityStatement ?? '')
   const [identitySaved, setIdentitySaved] = useState(false)
 
+  const syncAvailable = iCloudSyncAvailable()
+  const [syncConfigured, setSyncConfigured] = useState(false)
+  const [syncConnecting, setSyncConnecting] = useState(false)
+
+  useEffect(() => {
+    iCloudSyncConfigured().then(setSyncConfigured)
+  }, [])
+
   return (
     <div
       style={{
@@ -291,6 +305,84 @@ export default function Settings() {
           04:00
         </span>
       </Row>
+
+      {/* ── ICLOUD SYNC ── */}
+      <SectionHeader label="iCloud Sync" />
+
+      {!syncAvailable ? (
+        <div
+          style={{
+            borderTop: `1px solid ${rule}`,
+            padding: '20px 0',
+            fontFamily: sans,
+            fontSize: 13,
+            color: fg25,
+            lineHeight: 1.6,
+          }}
+        >
+          iCloud sync requires a Chromium browser (Chrome, Edge, Arc). Open CAM OS there to connect.
+        </div>
+      ) : (
+        <>
+          <Row label="Scriptable Folder">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span
+                style={{
+                  fontFamily: mono,
+                  fontSize: 10,
+                  letterSpacing: '0.2em',
+                  color: syncConfigured ? '#fff' : fg25,
+                  textTransform: 'uppercase',
+                }}
+              >
+                {syncConfigured ? 'CONNECTED' : 'NOT CONNECTED'}
+              </span>
+              <button
+                disabled={syncConnecting}
+                onClick={async () => {
+                  if (syncConfigured) {
+                    await disconnectICloudFolder()
+                    setSyncConfigured(false)
+                  } else {
+                    setSyncConnecting(true)
+                    const ok = await connectICloudFolder()
+                    setSyncConnecting(false)
+                    if (ok) setSyncConfigured(true)
+                  }
+                }}
+                style={{
+                  fontFamily: mono,
+                  fontSize: 10,
+                  letterSpacing: '0.28em',
+                  textTransform: 'uppercase',
+                  color: syncConfigured ? 'rgba(255,255,255,0.30)' : fg60,
+                  background: 'transparent',
+                  border: `1px solid rgba(255,255,255,0.12)`,
+                  padding: '10px 20px',
+                  cursor: syncConnecting ? 'default' : 'pointer',
+                  opacity: syncConnecting ? 0.5 : 1,
+                }}
+              >
+                {syncConnecting ? 'Connecting…' : syncConfigured ? 'Disconnect' : 'Connect'}
+              </button>
+            </div>
+          </Row>
+
+          <p
+            style={{
+              fontFamily: sans,
+              fontSize: 12,
+              color: fg25,
+              lineHeight: 1.6,
+              margin: '4px 0 0',
+            }}
+          >
+            {syncConfigured
+              ? `Every habit log writes the66-state.json to your selected folder. iCloud Drive syncs it to your iPhone where Scriptable widgets can read it.`
+              : `Select your iCloud Drive › Scriptable folder. CAM OS will write the66-state.json there after every update.`}
+          </p>
+        </>
+      )}
 
       {/* ── HABITS ── */}
       <SectionHeader label="Manage Habits" />

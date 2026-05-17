@@ -1,6 +1,7 @@
 import type { Arc, Habit, DayLog, CardCollection } from '../store/sixtysix.store'
 import { getCard } from './cardLogic'
 import { todayString } from './arcLogic'
+import { writeToICloud } from './icloudSync'
 
 const SNAPSHOT_KEY = 'cam-os-sixtysix-snapshot'
 
@@ -69,11 +70,16 @@ export function writeSnapshot(
     todayCard: card ? { text: card.text, attribution: card.attribution } : null,
   }
 
+  const json = JSON.stringify(snapshot)
+
   try {
-    localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snapshot))
+    localStorage.setItem(SNAPSHOT_KEY, json)
   } catch {
     // localStorage might be unavailable
   }
+
+  // Fire-and-forget — silently no-ops if not configured
+  writeToICloud(json).catch(() => {})
 }
 
 function computeStreak(arc: Arc, logs: DayLog[]): number {
