@@ -223,8 +223,10 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
   const yesterdayLog = habitLogs.find(l => l.date === yesterdayDate)
 
   const isComplete = todayLog?.complete === true
+  const yesterdayBeforeArcStart = yesterdayDate < arc.startDate
   const yesterdayMissed =
-    yesterdayLog === undefined || (!yesterdayLog.complete && !yesterdayLog.honestMiss)
+    !yesterdayBeforeArcStart &&
+    (yesterdayLog === undefined || (!yesterdayLog.complete && !yesterdayLog.honestMiss))
 
   // Stats
   const stats = habit

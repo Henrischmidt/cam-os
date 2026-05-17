@@ -74,6 +74,7 @@ interface SixtysixState {
   notificationsEnabled: boolean
   notificationTime: string  // HH:MM
   webhookUrl: string
+  dayBeginsHour: number   // 0–23, default 4
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -106,6 +107,7 @@ interface SixtysixActions {
   setNotificationsEnabled: (enabled: boolean) => void
   setNotificationTime: (time: string) => void
   setWebhookUrl: (url: string) => void
+  setDayBeginsHour: (hour: number) => void
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -155,6 +157,7 @@ const initialState: SixtysixState = {
   notificationsEnabled: false,
   notificationTime: '21:00',
   webhookUrl: '',
+  dayBeginsHour: 4,
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -168,7 +171,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
 
       createArc: (habitDefs, identityStatement) => {
         const arcId = makeId()
-        const today = todayString()
+        const today = todayString(get().dayBeginsHour)
 
         const arc: Arc = {
           id: arcId,
@@ -214,7 +217,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
         const { arc, habits, logs, cards } = state
         if (!arc) return
 
-        const logDate = date ?? todayString()
+        const logDate = date ?? todayString(get().dayBeginsHour)
         const habit = habits.find(h => h.id === habitId)
         if (!habit) return
 
@@ -266,7 +269,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
         const { arc, habits, logs, cards } = state
         if (!arc) return
 
-        const logDate = date ?? todayString()
+        const logDate = date ?? todayString(get().dayBeginsHour)
         const existingLogIdx = logs.findIndex(
           l => l.habitId === habitId && l.date === logDate && l.arcId === arc.id
         )
@@ -301,7 +304,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
         const { arc, habits, logs, cards } = state
         if (!arc || arc.status !== 'active') return
 
-        const computedDay = computeCurrentDay(arc.startDate)
+        const computedDay = computeCurrentDay(arc.startDate, get().dayBeginsHour)
         if (computedDay <= arc.currentDay) return
 
         const daysAway = computedDay - arc.currentDay
@@ -312,7 +315,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
         const phaseChanged = newPhase !== arc.phase
 
         // Check streak break: was yesterday complete?
-        const yesterday = new Date(todayString())
+        const yesterday = new Date(todayString(get().dayBeginsHour))
         yesterday.setDate(yesterday.getDate() - 1)
         const yesterdayStr = yesterday.toISOString().slice(0, 10)
         const activeHabits = habits.filter(h => h.arcId === arc.id && h.active)
@@ -362,7 +365,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
         if (!arc) return
 
         if (choice === 'restart') {
-          const today = todayString()
+          const today = todayString(get().dayBeginsHour)
           const updatedArc: Arc = {
             ...arc,
             startDate: today,
@@ -386,7 +389,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
 
       setTodayCard: (cardId) => {
         const state = get()
-        const today = todayString()
+        const today = todayString(get().dayBeginsHour)
         const updatedCards: CardCollection = {
           ...state.cards,
           collected: state.cards.collected.includes(cardId)
@@ -501,7 +504,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
       },
 
       setDayReflection: (reflection) => {
-        const today = todayString()
+        const today = todayString(get().dayBeginsHour)
         set(state => ({
           dailyReflections: { ...state.dailyReflections, [today]: reflection.trim() },
           showDayComplete: false,
@@ -517,6 +520,8 @@ export const useSixtysixStore = create<SixtysixStore>()(
       setNotificationTime: (time) => set({ notificationTime: time }),
 
       setWebhookUrl: (url) => set({ webhookUrl: url }),
+
+      setDayBeginsHour: (hour) => set({ dayBeginsHour: hour }),
 
       updateIdentityStatement: (statement) => {
         const state = get()

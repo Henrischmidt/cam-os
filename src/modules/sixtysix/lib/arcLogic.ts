@@ -35,20 +35,19 @@ export function phaseNumber(phase: Phase): number {
   return { ignition: 1, friction: 2, groove: 3, lockin: 4 }[phase]
 }
 
-// Returns today's local date as YYYY-MM-DD, using 04:00 as day boundary
-export function todayString(): string {
+// Returns today's local date as YYYY-MM-DD, using the given boundary hour (default 4am)
+export function todayString(boundaryHour = 4): string {
   const now = new Date()
-  // If before 4am, consider it "yesterday"
-  if (now.getHours() < 4) {
+  if (now.getHours() < boundaryHour) {
     now.setDate(now.getDate() - 1)
   }
   return now.toISOString().slice(0, 10)
 }
 
 // Compute expected current arc day given startDate and today
-export function computeCurrentDay(startDate: string): number {
+export function computeCurrentDay(startDate: string, boundaryHour = 4): number {
   const start = new Date(startDate)
-  const today = new Date(todayString())
+  const today = new Date(todayString(boundaryHour))
   const diff = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
   return Math.max(1, Math.min(66, diff + 1))
 }

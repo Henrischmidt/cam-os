@@ -171,6 +171,7 @@ export default function Settings() {
     honestMissWordMin,
     notificationsEnabled,
     notificationTime,
+    dayBeginsHour,
     setCurrentScreen,
     toggleHardMode,
     setHonestMissWordMin,
@@ -179,6 +180,7 @@ export default function Settings() {
     updateHabit,
     setNotificationsEnabled,
     setNotificationTime,
+    setDayBeginsHour,
     webhookUrl,
     setWebhookUrl,
   } = useSixtysixStore()
@@ -345,20 +347,30 @@ export default function Settings() {
       <SectionHeader label="Day Rollover" />
 
       <Row label="Day Begins At">
-        <span
+        <input
+          type="time"
+          value={`${String(dayBeginsHour).padStart(2, '0')}:00`}
+          onChange={e => {
+            const h = parseInt(e.target.value.split(':')[0], 10)
+            if (!isNaN(h)) setDayBeginsHour(h)
+          }}
           style={{
+            background: 'transparent',
+            border: `1px solid rgba(255,255,255,0.12)`,
+            color: fg60,
             fontFamily: mono,
             fontSize: 12,
-            color: fg40,
-            border: `1px solid rgba(255,255,255,0.12)`,
-            borderRadius: 100,
-            padding: '4px 14px',
             letterSpacing: '0.1em',
+            padding: '8px 14px',
+            outline: 'none',
+            borderRadius: 100,
           }}
-        >
-          04:00
-        </span>
+        />
       </Row>
+
+      <p style={{ fontFamily: sans, fontSize: 12, color: fg25, lineHeight: 1.6, margin: '0 0 4px' }}>
+        If you're up after midnight, the day doesn't flip until this time. Lets night owls complete habits before the arc rolls over.
+      </p>
 
       {/* ── ICLOUD SYNC ── */}
       <SectionHeader label="iCloud Sync" />
@@ -508,52 +520,9 @@ export default function Settings() {
         </div>
       ) : (
         arcHabits.map(h => (
-          <div
-            key={h.id}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              borderTop: `1px solid ${rule}`,
-              padding: '20px 0',
-            }}
-          >
-            <span
-              style={{
-                fontFamily: "'Outfit', sans-serif",
-                fontSize: 14,
-                color: fg60,
-              }}
-            >
-              {h.name}
-            </span>
-            <span
-              style={{
-                fontFamily: mono,
-                fontSize: 9,
-                letterSpacing: '0.2em',
-                color: fg25,
-                textTransform: 'uppercase',
-              }}
-            >
-              {h.type}
-            </span>
-          </div>
+          <HabitEditRow key={h.id} habit={h} onSave={(name) => updateHabit(h.id, { name })} />
         ))
       )}
-
-      <p
-        style={{
-          fontFamily: mono,
-          fontSize: 10,
-          color: fg25,
-          letterSpacing: '0.14em',
-          marginTop: 4,
-          marginBottom: 0,
-        }}
-      >
-        Full habit editing in Phase 3.
-      </p>
 
       {/* ── DATA ── */}
       <SectionHeader label="Data" />
@@ -726,6 +695,59 @@ export default function Settings() {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Habit edit row ───────────────────────────────────────────────────────────
+
+function HabitEditRow({ habit, onSave }: { habit: { id: string; name: string; type: string }; onSave: (name: string) => void }) {
+  const [value, setValue] = useState(habit.name)
+  const [saved, setSaved] = useState(false)
+
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      borderTop: `1px solid ${rule}`,
+      padding: '16px 0',
+    }}>
+      <input
+        value={value}
+        onChange={e => { setValue(e.target.value); setSaved(false) }}
+        style={{
+          flex: 1,
+          background: 'transparent',
+          border: 'none',
+          borderBottom: `1px solid rgba(255,255,255,0.12)`,
+          outline: 'none',
+          fontFamily: sans,
+          fontSize: 15,
+          color: '#fff',
+          padding: '6px 0',
+        }}
+      />
+      <span style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.2em', color: fg25, textTransform: 'uppercase', flexShrink: 0 }}>
+        {habit.type}
+      </span>
+      <button
+        onClick={() => { if (value.trim()) { onSave(value.trim()); setSaved(true) } }}
+        style={{
+          fontFamily: mono,
+          fontSize: 9,
+          letterSpacing: '0.24em',
+          textTransform: 'uppercase',
+          color: saved ? fg25 : fg60,
+          background: 'transparent',
+          border: `1px solid rgba(255,255,255,0.12)`,
+          padding: '8px 16px',
+          cursor: 'pointer',
+          flexShrink: 0,
+        }}
+      >
+        {saved ? 'Saved' : 'Save'}
+      </button>
     </div>
   )
 }

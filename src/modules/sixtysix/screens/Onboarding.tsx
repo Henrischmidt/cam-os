@@ -65,9 +65,10 @@ interface HabitRowProps {
   canRemove: boolean
   onChange: (index: number, updates: Partial<HabitDef>) => void
   onRemove: (index: number) => void
+  showNameError?: boolean
 }
 
-function HabitRow({ habit, index, canRemove, onChange, onRemove }: HabitRowProps) {
+function HabitRow({ habit, index, canRemove, onChange, onRemove, showNameError }: HabitRowProps) {
   const types: HabitType[] = ['toggle', 'counter', 'timer', 'shoot']
 
   return (
@@ -90,11 +91,12 @@ function HabitRow({ habit, index, canRemove, onChange, onRemove }: HabitRowProps
             flex: 1,
             background: 'transparent',
             border: 'none',
+            borderBottom: showNameError ? '1px solid rgba(255,100,100,0.6)' : 'none',
             outline: 'none',
             fontFamily: sans,
             fontSize: 18,
             color: '#fff',
-            padding: 0,
+            padding: showNameError ? '0 0 4px' : 0,
           }}
         />
         {canRemove && (
@@ -212,9 +214,10 @@ interface Screen1Props {
   onChange: (index: number, updates: Partial<HabitDef>) => void
   onRemove: (index: number) => void
   onAdd: () => void
+  triedAdvance: boolean
 }
 
-function Screen1({ habits, onChange, onRemove, onAdd }: Screen1Props) {
+function Screen1({ habits, onChange, onRemove, onAdd, triedAdvance }: Screen1Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       <div
@@ -252,6 +255,7 @@ function Screen1({ habits, onChange, onRemove, onAdd }: Screen1Props) {
             canRemove={habits.length > 3}
             onChange={onChange}
             onRemove={onRemove}
+            showNameError={triedAdvance && !h.name.trim()}
           />
         ))}
         <div style={{ borderTop: `1px solid ${rule}` }} />
@@ -341,14 +345,15 @@ function Screen2({ identity, setIdentity }: Screen2Props) {
 
       <div
         style={{
-          fontFamily: mono,
-          fontSize: 10,
-          letterSpacing: '0.2em',
-          color: fg40,
-          marginTop: 16,
+          fontFamily: serif,
+          fontStyle: 'italic',
+          fontSize: 13,
+          color: fg25,
+          marginTop: 12,
+          lineHeight: 1.6,
         }}
       >
-        Required.
+        e.g. "wakes up energised and physically strong" or "ships creative work every week"
       </div>
     </div>
   )
@@ -414,6 +419,7 @@ export default function Onboarding() {
   const [habits, setHabits] = useState<HabitDef[]>(defaultHabits)
   const [identity, setIdentity] = useState('')
   const [flashing, setFlashing] = useState(false)
+  const [triedAdvance, setTriedAdvance] = useState(false)
 
   const createArc = useSixtysixStore(s => s.createArc)
 
@@ -446,7 +452,8 @@ export default function Onboarding() {
   }
 
   function next() {
-    if (!canAdvance()) return
+    if (!canAdvance()) { setTriedAdvance(true); return }
+    setTriedAdvance(false)
     if (step === 1) setStep(2)
     else if (step === 2) setStep(3)
     else {
@@ -547,6 +554,7 @@ export default function Onboarding() {
             onChange={changeHabit}
             onRemove={removeHabit}
             onAdd={addHabit}
+            triedAdvance={triedAdvance}
           />
         )}
         {step === 2 && <Screen2 identity={identity} setIdentity={setIdentity} />}

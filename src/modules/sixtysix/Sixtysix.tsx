@@ -53,6 +53,7 @@ export default function Sixtysix() {
     setDayReflection,
     dismissDayComplete,
     resolveCatchUp,
+    dayBeginsHour,
   } = useSixtysixStore()
 
   // On mount: rollover day + pull daily card
@@ -62,17 +63,17 @@ export default function Sixtysix() {
 
   useEffect(() => {
     if (!arc) return
-    const today = todayString()
+    const today = todayString(dayBeginsHour)
     if (cards.lastPulledDate !== today) {
       const cardId = pullDailyCard(arc, cards)
       setTodayCard(cardId)
     }
-  }, [arc, cards, setTodayCard])
+  }, [arc, cards, setTodayCard, dayBeginsHour])
 
   if (!arc) return null
 
   const activeHabits = habits.filter(h => h.arcId === arc.id && h.active)
-  const today = todayString()
+  const today = todayString(dayBeginsHour)
   const todayLogs = logs.filter(l => l.date === today && l.arcId === arc.id)
 
   const yesterday = new Date(today)
@@ -118,11 +119,11 @@ export default function Sixtysix() {
 
   const drawerHabit = drawerHabitId ? habits.find(h => h.id === drawerHabitId) ?? null : null
 
-  // Overdue habit check
-  const overdueHabit = activeHabits.find(h => {
+  // Overdue habit check (only valid if yesterday is within the arc)
+  const overdueHabit = yesterdayStr >= arc.startDate ? activeHabits.find(h => {
     const yLog = yesterdayLogs.find(l => l.habitId === h.id)
     return !yLog || (!yLog.complete && !yLog.honestMiss)
-  })
+  }) : undefined
 
   const statusText = (() => {
     if (doneTodayCount === activeHabits.length) return 'All done for today.'
@@ -210,7 +211,7 @@ export default function Sixtysix() {
               <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: '0.28em', color: 'rgba(255,255,255,0.50)', textTransform: 'uppercase' }}>DAY STREAK</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-              <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 22, color: '#fff', letterSpacing: '-0.01em' }}>{rate30}%</span>
+              <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 22, color: arc.currentDay >= 7 ? '#fff' : 'rgba(255,255,255,0.25)', letterSpacing: '-0.01em' }}>{arc.currentDay >= 7 ? `${rate30}%` : '—'}</span>
               <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: '0.28em', color: 'rgba(255,255,255,0.50)', textTransform: 'uppercase' }}>RATE · 30D</span>
             </div>
           </div>
@@ -326,9 +327,9 @@ export default function Sixtysix() {
             borderBottom: '1px solid rgba(255,255,255,0.10)',
           }}>
             {[
-              { label: 'CURRENT STREAK', value: streak, unit: 'DAYS' },
-              { label: 'MARKS', value: arc.marks, unit: 'TOTAL' },
-              { label: 'RATE · 30 DAYS', value: rate30, unit: '%' },
+              { label: 'CURRENT STREAK', value: `${streak}`, unit: 'DAYS' },
+              { label: 'MARKS', value: `${arc.marks}`, unit: 'TOTAL' },
+              { label: arc.currentDay >= 7 ? 'RATE · 30 DAYS' : 'RATE · 30 DAYS', value: arc.currentDay >= 7 ? `${rate30}` : '—', unit: arc.currentDay >= 7 ? '%' : '' },
             ].map((stat, i) => (
               <div key={stat.label} style={{
                 padding: '22px 24px 20px',
@@ -342,10 +343,10 @@ export default function Sixtysix() {
                 }}>{stat.label}</div>
                 <div style={{
                   fontFamily: "'DM Mono',monospace",
-                  fontSize: 26, color: '#fff', letterSpacing: '-0.01em',
+                  fontSize: 26, color: arc.currentDay >= 7 || i < 2 ? '#fff' : 'rgba(255,255,255,0.25)', letterSpacing: '-0.01em',
                 }}>
                   {stat.value}
-                  <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.40)', marginLeft: 6 }}>{stat.unit}</span>
+                  {stat.unit && <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.40)', marginLeft: 6 }}>{stat.unit}</span>}
                 </div>
               </div>
             ))}

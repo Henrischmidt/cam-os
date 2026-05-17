@@ -13,6 +13,7 @@ export default function HubCard() {
     habits,
     logs,
     cards,
+    dayBeginsHour,
     setTodayCard,
     setCurrentTab,
     setCurrentScreen,
@@ -20,16 +21,16 @@ export default function HubCard() {
 
   useEffect(() => {
     if (!arc) return
-    const today = todayString()
+    const today = todayString(dayBeginsHour)
     if (cards.lastPulledDate !== today) {
       const cardId = pullDailyCard(arc, cards)
       setTodayCard(cardId)
     }
-  }, [arc, cards, setTodayCard])
+  }, [arc, cards, dayBeginsHour, setTodayCard])
 
   if (!arc) return null
 
-  const today = todayString()
+  const today = todayString(dayBeginsHour)
   const activeHabits = habits.filter(h => h.arcId === arc.id && h.active)
   const todayLogs = logs.filter(l => l.date === today && l.arcId === arc.id)
   const done = activeHabits.filter(h => todayLogs.find(l => l.habitId === h.id && l.complete)).length

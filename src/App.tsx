@@ -97,6 +97,7 @@ export default function App() {
     arc, habits, logs,
     currentScreen, currentTab,
     notificationsEnabled, notificationTime,
+    dayBeginsHour,
     setCurrentScreen, setCurrentTab,
   } = useSixtysixStore()
 
@@ -117,7 +118,7 @@ export default function App() {
     const target = new Date(); target.setHours(h, m, 0, 0)
     if (now < target) return
 
-    const today = todayString()
+    const today = todayString(dayBeginsHour)
     const lastNotified = localStorage.getItem('cam-os-notified')
     if (lastNotified === today) return
 
