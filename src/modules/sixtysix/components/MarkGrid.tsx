@@ -1,6 +1,7 @@
 import React from 'react'
 import type { DayLog, Habit } from '../store/sixtysix.store'
 import { todayString } from '../lib/arcLogic'
+import { useIsMobile } from '../lib/useIsMobile'
 
 interface MarkGridProps {
   logs: DayLog[]
@@ -12,10 +13,10 @@ interface MarkGridProps {
 
 type CellState = 'done' | 'honest' | 'miss' | 'today' | 'empty'
 
-function getLast30Days(): string[] {
+function getDays(count: number): string[] {
   const days: string[] = []
   const today = new Date(todayString())
-  for (let i = 29; i >= 0; i--) {
+  for (let i = count - 1; i >= 0; i--) {
     const d = new Date(today)
     d.setDate(d.getDate() - i)
     days.push(d.toISOString().slice(0, 10))
@@ -90,8 +91,10 @@ const STYLES = `
 `
 
 export default function MarkGrid({ logs, habits, arcId, arcStartDate, className }: MarkGridProps) {
+  const isMobile = useIsMobile()
+  const dayCount = isMobile ? 15 : 30
   const activeHabits = habits.filter(h => h.arcId === arcId && h.active)
-  const days = getLast30Days()
+  const days = getDays(dayCount)
   const todayStr = todayString()
 
   // Compute stats — only count days from arc start to today
@@ -166,8 +169,8 @@ export default function MarkGrid({ logs, habits, arcId, arcStartDate, className 
 
   const gridStyle: React.CSSProperties = {
     display: 'grid',
-    gridTemplateColumns: 'repeat(30, 1fr)',
-    gap: '10px',
+    gridTemplateColumns: `repeat(${dayCount}, 1fr)`,
+    gap: isMobile ? '8px' : '10px',
   }
 
   const legendStyle: React.CSSProperties = {
@@ -194,7 +197,7 @@ export default function MarkGrid({ logs, habits, arcId, arcStartDate, className 
       <div style={containerStyle} className={className}>
         <div style={headerStyle}>
           <span style={labelStyle}>
-            LAST 30 DAYS &middot; ALL HABITS &middot; {possibleMarks} POSSIBLE MARKS
+            LAST {dayCount} DAYS &middot; ALL HABITS &middot; {possibleMarks} POSSIBLE MARKS
           </span>
           <span style={statsStyle}>
             {doneCt} DONE &middot; {honestCt} HONEST &middot; {missCt} MISS

@@ -3,6 +3,7 @@ import { useSixtysixStore } from './store/sixtysix.store'
 import type { HabitType } from './store/sixtysix.store'
 import { pullDailyCard } from './lib/cardLogic'
 import { todayString, phaseName, phaseNumber } from './lib/arcLogic'
+import { useIsMobile } from './lib/useIsMobile'
 import HabitRow from './components/HabitRow'
 import MarkGrid from './components/MarkGrid'
 import DailyCard from './components/DailyCard'
@@ -12,14 +13,11 @@ import StreakBreakRecovery from './components/StreakBreakRecovery'
 import DayCompleteModal from './components/DayCompleteModal'
 import CatchUpFlow from './components/CatchUpFlow'
 
-const RING_SIZE = 320
-
-function progressRing(pct: number) {
+function progressRing(pct: number): React.CSSProperties {
   return {
-    width: RING_SIZE,
-    height: RING_SIZE,
+    width: 'clamp(180px, 56vw, 320px)',
+    height: 'clamp(180px, 56vw, 320px)',
     borderRadius: '50%',
-    // --ring-pct is animated via @property in index.css; falls back to static gradient
     ['--ring-pct' as string]: `${pct}%`,
     position: 'relative' as const,
     display: 'grid',
@@ -31,6 +29,10 @@ function progressRing(pct: number) {
 const riseIn = (delay: number): React.CSSProperties => ({
   animation: `rise-in 500ms cubic-bezier(0.16,1,0.3,1) ${delay}ms both`,
 })
+
+const mono = "'DM Mono', monospace"
+const serif = "'Instrument Serif', serif"
+const sans = "'Outfit', sans-serif"
 
 export default function Sixtysix() {
   const {
@@ -58,11 +60,12 @@ export default function Sixtysix() {
     addHabit,
   } = useSixtysixStore()
 
+  const isMobile = useIsMobile()
+
   const [showAddForm, setShowAddForm] = useState(false)
   const [newHabitName, setNewHabitName] = useState('')
   const [newHabitType, setNewHabitType] = useState<HabitType>('toggle')
 
-  // On mount: rollover day + pull daily card
   useEffect(() => {
     rolloverDay()
   }, [rolloverDay])
@@ -95,7 +98,6 @@ export default function Sixtysix() {
     ? Math.round((doneTodayCount / activeHabits.length) * 100)
     : 0
 
-  // Compute streak
   let streak = 0
   for (let i = 1; i <= arc.currentDay; i++) {
     const d = new Date(today)
@@ -108,7 +110,6 @@ export default function Sixtysix() {
     else break
   }
 
-  // Rate 30d
   const rate30 = (() => {
     let possible = 0; let done = 0
     for (let i = 1; i <= 30; i++) {
@@ -125,7 +126,6 @@ export default function Sixtysix() {
 
   const drawerHabit = drawerHabitId ? habits.find(h => h.id === drawerHabitId) ?? null : null
 
-  // Overdue habit check (only valid if yesterday is within the arc)
   const overdueHabit = yesterdayStr >= arc.startDate ? activeHabits.find(h => {
     const yLog = yesterdayLogs.find(l => l.habitId === h.id)
     return !yLog || (!yLog.complete && !yLog.honestMiss)
@@ -136,6 +136,8 @@ export default function Sixtysix() {
     const overdueText = overdueHabit ? ` ${overdueHabit.name} overdue from yesterday.` : ''
     return `${doneTodayCount} of ${activeHabits.length} done.${overdueText}`
   })()
+
+  const hPad = isMobile ? '20px' : '56px'
 
   return (
     <>
@@ -149,26 +151,35 @@ export default function Sixtysix() {
       {/* Main scrollable content */}
       <div style={{ paddingBottom: 96, position: 'relative', zIndex: 1 }}>
 
-        {/* Stage: 3-column grid */}
-        <section style={{ ...riseIn(0),
-          padding: '64px 56px 0',
-          display: 'grid',
-          gridTemplateColumns: '1fr auto 1fr',
-          gap: 56,
-          alignItems: 'center',
+        {/* Stage: responsive */}
+        <section style={{
+          ...riseIn(0),
+          padding: `${isMobile ? '32px' : '64px'} ${hPad} 0`,
+          ...(isMobile
+            ? { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }
+            : { display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 56, alignItems: 'center' }
+          ),
         }}>
-          {/* LHS: identity */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, justifySelf: 'end', textAlign: 'right', maxWidth: 340 }}>
+          {/* LHS: identity — order 3 on mobile */}
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: 14,
+            ...(isMobile
+              ? { order: 3, textAlign: 'center' as const, alignSelf: 'stretch' as const }
+              : { justifySelf: 'end' as const, textAlign: 'right' as const, maxWidth: 340 }
+            ),
+          }}>
             <div style={{
-              fontFamily: "'DM Mono', monospace",
+              fontFamily: mono,
               fontSize: 10, letterSpacing: '0.32em',
               color: 'rgba(255,255,255,0.50)', textTransform: 'uppercase',
             }}>
               DAY {arc.currentDay} · ARC 1 · {phaseName(arc.phase).toUpperCase()}
             </div>
             <div style={{
-              fontFamily: "'Instrument Serif', serif",
-              fontStyle: 'italic', fontSize: 22, lineHeight: 1.35,
+              fontFamily: serif,
+              fontStyle: 'italic',
+              fontSize: isMobile ? 17 : 22,
+              lineHeight: 1.35,
               color: 'rgba(255,255,255,0.60)', letterSpacing: '-0.005em',
             }}>
               By Day 66,<br />
@@ -177,21 +188,21 @@ export default function Sixtysix() {
             </div>
           </div>
 
-          {/* Center: progress ring */}
-          <div className="progress-ring" style={progressRing(todayPct)}>
+          {/* Center: progress ring — order 1 on mobile */}
+          <div className="progress-ring" style={{ ...progressRing(todayPct), ...(isMobile ? { order: 1 } : {}) }}>
             <div style={{
               position: 'absolute', inset: 12,
               background: '#000', borderRadius: '50%',
             }} />
             <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
               <div style={{
-                fontFamily: "'DM Mono', monospace",
-                fontSize: 72, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1,
+                fontFamily: mono,
+                fontSize: 'clamp(40px, 12vw, 72px)', color: '#fff', letterSpacing: '-0.02em', lineHeight: 1,
               }}>
                 {todayPct}%
               </div>
               <div style={{
-                fontFamily: "'DM Mono', monospace",
+                fontFamily: mono,
                 fontSize: 10, letterSpacing: '0.32em',
                 color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase',
                 marginTop: 10,
@@ -201,35 +212,60 @@ export default function Sixtysix() {
             </div>
           </div>
 
-          {/* RHS: anchor stats */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, justifySelf: 'start' }}>
-            <div style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 10, letterSpacing: '0.3em',
-              color: 'rgba(255,255,255,0.50)', textTransform: 'uppercase',
-            }}>TODAY</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-              <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 22, color: '#fff', letterSpacing: '-0.01em' }}>{doneTodayCount}</span>
-              <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: '0.28em', color: 'rgba(255,255,255,0.50)', textTransform: 'uppercase' }}>OF {activeHabits.length} DONE</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-              <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 22, color: '#fff', letterSpacing: '-0.01em' }}>{streak}</span>
-              <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: '0.28em', color: 'rgba(255,255,255,0.50)', textTransform: 'uppercase' }}>DAY STREAK</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-              <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 22, color: arc.currentDay >= 7 ? '#fff' : 'rgba(255,255,255,0.25)', letterSpacing: '-0.01em' }}>{arc.currentDay >= 7 ? `${rate30}%` : '—'}</span>
-              <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: '0.28em', color: 'rgba(255,255,255,0.50)', textTransform: 'uppercase' }}>RATE · 30D</span>
-            </div>
+          {/* RHS: stats — order 2 on mobile, horizontal row */}
+          <div style={{
+            display: 'flex',
+            ...(isMobile
+              ? { order: 2, flexDirection: 'row' as const, gap: 28, justifyContent: 'center' as const, alignItems: 'center' as const }
+              : { flexDirection: 'column' as const, gap: 14, justifySelf: 'start' as const }
+            ),
+          }}>
+            {isMobile ? (
+              <>
+                {/* Mobile compact stats row */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                  <span style={{ fontFamily: mono, fontSize: 22, color: '#fff', letterSpacing: '-0.01em', lineHeight: 1 }}>{doneTodayCount}</span>
+                  <span style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.26em', color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase' as const }}>OF {activeHabits.length}</span>
+                </div>
+                <div style={{ width: 1, height: 32, background: 'rgba(255,255,255,0.10)' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                  <span style={{ fontFamily: mono, fontSize: 22, color: '#fff', letterSpacing: '-0.01em', lineHeight: 1 }}>{streak}</span>
+                  <span style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.26em', color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase' as const }}>STREAK</span>
+                </div>
+                <div style={{ width: 1, height: 32, background: 'rgba(255,255,255,0.10)' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                  <span style={{ fontFamily: mono, fontSize: 22, color: arc.currentDay >= 7 ? '#fff' : 'rgba(255,255,255,0.25)', letterSpacing: '-0.01em', lineHeight: 1 }}>{arc.currentDay >= 7 ? `${rate30}%` : '—'}</span>
+                  <span style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.26em', color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase' as const }}>30D</span>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Desktop vertical stats */}
+                <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.3em', color: 'rgba(255,255,255,0.50)', textTransform: 'uppercase' }}>TODAY</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+                  <span style={{ fontFamily: mono, fontSize: 22, color: '#fff', letterSpacing: '-0.01em' }}>{doneTodayCount}</span>
+                  <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.28em', color: 'rgba(255,255,255,0.50)', textTransform: 'uppercase' }}>OF {activeHabits.length} DONE</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+                  <span style={{ fontFamily: mono, fontSize: 22, color: '#fff', letterSpacing: '-0.01em' }}>{streak}</span>
+                  <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.28em', color: 'rgba(255,255,255,0.50)', textTransform: 'uppercase' }}>DAY STREAK</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+                  <span style={{ fontFamily: mono, fontSize: 22, color: arc.currentDay >= 7 ? '#fff' : 'rgba(255,255,255,0.25)', letterSpacing: '-0.01em' }}>{arc.currentDay >= 7 ? `${rate30}%` : '—'}</span>
+                  <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.28em', color: 'rgba(255,255,255,0.50)', textTransform: 'uppercase' }}>RATE · 30D</span>
+                </div>
+              </>
+            )}
           </div>
         </section>
 
         {/* Phase header with tick bar */}
         <div style={{ ...riseIn(80),
-          padding: '32px 56px 0',
+          padding: `32px ${hPad} 0`,
           display: 'flex', alignItems: 'center', gap: 24,
         }}>
           <span style={{
-            fontFamily: "'DM Mono',monospace",
+            fontFamily: mono,
             fontSize: 10, letterSpacing: '0.32em',
             color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase',
           }}>
@@ -239,7 +275,7 @@ export default function Sixtysix() {
           <button
             onClick={() => setCurrentScreen('settings')}
             style={{
-              fontFamily: "'DM Mono',monospace",
+              fontFamily: mono,
               fontSize: 9, letterSpacing: '0.32em',
               color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase',
               background: 'transparent', border: 'none', cursor: 'pointer',
@@ -251,7 +287,7 @@ export default function Sixtysix() {
         </div>
 
         {/* Habits list */}
-        <section style={{ padding: '40px 56px 0', ...riseIn(160) }}>
+        <section style={{ padding: `40px ${hPad} 0`, ...riseIn(160) }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {activeHabits.map(habit => {
               const todayLog = todayLogs.find(l => l.habitId === habit.id)
@@ -292,7 +328,7 @@ export default function Sixtysix() {
                     <line x1="7" y1="2" x2="7" y2="12" /><line x1="2" y1="7" x2="12" y2="7" />
                   </svg>
                 </div>
-                <span style={{ fontFamily: "'Instrument Serif',serif", fontStyle: 'italic', fontSize: 15, color: 'rgba(255,255,255,0.35)' }}>
+                <span style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 15, color: 'rgba(255,255,255,0.35)' }}>
                   Add habit
                 </span>
               </div>
@@ -310,7 +346,7 @@ export default function Sixtysix() {
                   placeholder="Habit name"
                   onKeyDown={e => {
                     if (e.key === 'Enter' && newHabitName.trim()) {
-                      addHabit({ name: newHabitName.trim(), type: newHabitType, target: newHabitType === 'toggle' || newHabitType === 'shoot' ? 1 : 1, whyStatement: '' })
+                      addHabit({ name: newHabitName.trim(), type: newHabitType, target: 1, whyStatement: '' })
                       setNewHabitName(''); setShowAddForm(false)
                     }
                     if (e.key === 'Escape') { setNewHabitName(''); setShowAddForm(false) }
@@ -319,14 +355,14 @@ export default function Sixtysix() {
                     background: 'transparent', border: 'none',
                     borderBottom: '1px solid rgba(255,255,255,0.20)',
                     outline: 'none', color: '#fff',
-                    fontFamily: "'Outfit',sans-serif", fontSize: 16,
+                    fontFamily: sans, fontSize: 16,
                     padding: '6px 0', width: '100%',
                   }}
                 />
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {(['toggle','counter','timer','shoot'] as HabitType[]).map(t => (
                     <button key={t} onClick={() => setNewHabitType(t)} style={{
-                      fontFamily: "'DM Mono',monospace", fontSize: 9, letterSpacing: '0.3em',
+                      fontFamily: mono, fontSize: 9, letterSpacing: '0.3em',
                       textTransform: 'uppercase', padding: '6px 14px', cursor: 'pointer',
                       border: '1px solid rgba(255,255,255,0.18)',
                       background: newHabitType === t ? '#fff' : 'transparent',
@@ -338,12 +374,12 @@ export default function Sixtysix() {
                   <button
                     onClick={() => {
                       if (newHabitName.trim()) {
-                        addHabit({ name: newHabitName.trim(), type: newHabitType, target: newHabitType === 'toggle' || newHabitType === 'shoot' ? 1 : 1, whyStatement: '' })
+                        addHabit({ name: newHabitName.trim(), type: newHabitType, target: 1, whyStatement: '' })
                         setNewHabitName(''); setShowAddForm(false)
                       }
                     }}
                     style={{
-                      fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: '0.32em',
+                      fontFamily: mono, fontSize: 10, letterSpacing: '0.32em',
                       textTransform: 'uppercase', border: '1px solid #fff',
                       background: 'transparent', color: '#fff',
                       padding: '12px 24px', cursor: 'pointer',
@@ -353,7 +389,7 @@ export default function Sixtysix() {
                   <button
                     onClick={() => { setNewHabitName(''); setShowAddForm(false) }}
                     style={{
-                      fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: '0.32em',
+                      fontFamily: mono, fontSize: 10, letterSpacing: '0.32em',
                       textTransform: 'uppercase', border: '1px solid rgba(255,255,255,0.12)',
                       background: 'transparent', color: 'rgba(255,255,255,0.40)',
                       padding: '12px 24px', cursor: 'pointer',
@@ -365,7 +401,7 @@ export default function Sixtysix() {
           </div>
           <div style={{
             marginTop: 22,
-            fontFamily: "'Outfit',sans-serif",
+            fontFamily: sans,
             fontWeight: 300, fontSize: 13,
             color: 'rgba(255,255,255,0.50)', letterSpacing: '0.005em',
           }}>
@@ -374,7 +410,7 @@ export default function Sixtysix() {
         </section>
 
         {/* Aggregate mark grid */}
-        <section style={{ padding: '64px 56px 0', display: 'flex', flexDirection: 'column', gap: 18, ...riseIn(240) }}>
+        <section style={{ padding: `${isMobile ? '40px' : '64px'} ${hPad} 0`, display: 'flex', flexDirection: 'column', gap: 18, ...riseIn(240) }}>
           <MarkGrid
             logs={logs}
             habits={activeHabits}
@@ -384,7 +420,7 @@ export default function Sixtysix() {
         </section>
 
         {/* Stats section */}
-        <section style={{ padding: '48px 56px 0', ...riseIn(320) }}>
+        <section style={{ padding: `${isMobile ? '32px' : '48px'} ${hPad} 0`, ...riseIn(320) }}>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
@@ -392,26 +428,28 @@ export default function Sixtysix() {
             borderBottom: '1px solid rgba(255,255,255,0.10)',
           }}>
             {[
-              { label: 'CURRENT STREAK', value: `${streak}`, unit: 'DAYS' },
+              { label: isMobile ? 'STREAK' : 'CURRENT STREAK', value: `${streak}`, unit: 'DAYS' },
               { label: 'MARKS', value: `${arc.marks}`, unit: 'TOTAL' },
-              { label: arc.currentDay >= 7 ? 'RATE · 30 DAYS' : 'RATE · 30 DAYS', value: arc.currentDay >= 7 ? `${rate30}` : '—', unit: arc.currentDay >= 7 ? '%' : '' },
+              { label: isMobile ? 'RATE' : 'RATE · 30 DAYS', value: arc.currentDay >= 7 ? `${rate30}` : '—', unit: arc.currentDay >= 7 ? '%' : '' },
             ].map((stat, i) => (
               <div key={stat.label} style={{
-                padding: '22px 24px 20px',
+                padding: isMobile ? '14px 10px 12px' : '22px 24px 20px',
                 borderRight: i < 2 ? '1px solid rgba(255,255,255,0.10)' : 'none',
               }}>
                 <div style={{
-                  fontFamily: "'DM Mono',monospace",
-                  fontSize: 9, letterSpacing: '0.28em',
+                  fontFamily: mono,
+                  fontSize: isMobile ? 7 : 9, letterSpacing: '0.28em',
                   color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase',
-                  marginBottom: 10,
+                  marginBottom: 8,
                 }}>{stat.label}</div>
                 <div style={{
-                  fontFamily: "'DM Mono',monospace",
-                  fontSize: 26, color: arc.currentDay >= 7 || i < 2 ? '#fff' : 'rgba(255,255,255,0.25)', letterSpacing: '-0.01em',
+                  fontFamily: mono,
+                  fontSize: isMobile ? 20 : 26,
+                  color: arc.currentDay >= 7 || i < 2 ? '#fff' : 'rgba(255,255,255,0.25)',
+                  letterSpacing: '-0.01em',
                 }}>
                   {stat.value}
-                  {stat.unit && <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.40)', marginLeft: 6 }}>{stat.unit}</span>}
+                  {stat.unit && <span style={{ fontSize: isMobile ? 11 : 14, color: 'rgba(255,255,255,0.40)', marginLeft: 4 }}>{stat.unit}</span>}
                 </div>
               </div>
             ))}
@@ -426,12 +464,12 @@ export default function Sixtysix() {
               marginTop: 40,
               padding: '16px 0',
               borderTop: '1px solid rgba(255,255,255,0.06)',
-              display: 'flex', gap: 16,
+              display: 'flex', gap: 12, flexWrap: 'wrap',
             }}>
               <button
                 onClick={() => useSixtysixStore.getState().debugAdvanceDay()}
                 style={{
-                  fontFamily: "'DM Mono',monospace",
+                  fontFamily: mono,
                   fontSize: 9, letterSpacing: '0.28em',
                   color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase',
                   background: 'transparent', border: '1px solid rgba(255,255,255,0.12)',
@@ -443,19 +481,19 @@ export default function Sixtysix() {
               <button
                 onClick={() => setCurrentScreen('onboarding')}
                 style={{
-                  fontFamily: "'DM Mono',monospace",
+                  fontFamily: mono,
                   fontSize: 9, letterSpacing: '0.28em',
                   color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase',
                   background: 'transparent', border: '1px solid rgba(255,255,255,0.12)',
                   padding: '8px 16px', cursor: 'pointer',
                 }}
               >
-                DEBUG: RESET ONBOARDING
+                DEBUG: ONBOARDING
               </button>
               <button
                 onClick={() => setCurrentScreen('arc-complete')}
                 style={{
-                  fontFamily: "'DM Mono',monospace",
+                  fontFamily: mono,
                   fontSize: 9, letterSpacing: '0.28em',
                   color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase',
                   background: 'transparent', border: '1px solid rgba(255,255,255,0.12)',
@@ -477,7 +515,6 @@ export default function Sixtysix() {
         onClose={() => setDrawerHabitId(null)}
       />
 
-      {/* Catch-up flow — shown first if user was away 2+ days */}
       {showCatchUp && (
         <CatchUpFlow
           daysAway={catchUpDaysAway}
@@ -485,7 +522,6 @@ export default function Sixtysix() {
         />
       )}
 
-      {/* Milestone overlay */}
       {showMilestone && milestoneDay !== null && (
         <MilestoneOverlay
           day={milestoneDay}
@@ -497,7 +533,6 @@ export default function Sixtysix() {
         />
       )}
 
-      {/* Streak break recovery */}
       {showStreakBreak && (
         <StreakBreakRecovery
           arc={arc}
@@ -505,7 +540,6 @@ export default function Sixtysix() {
         />
       )}
 
-      {/* Day complete — identity read + one-word reflection */}
       {showDayComplete && arc && (
         <DayCompleteModal
           identityStatement={arc.identityStatement}

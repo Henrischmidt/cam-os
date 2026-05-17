@@ -1,0 +1,18 @@
+{
+  "name": "CAM OS — The 66",
+  "short_name": "The 66",
+  "description": "A 66-day arc for the habits that define who you become.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%23000'/><circle cx='256' cy='256' r='180' fill='none' stroke='%23fff' stroke-width='24'/><circle cx='256' cy='256' r='60' fill='%23fff'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

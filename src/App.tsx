@@ -159,7 +159,7 @@ export default function App() {
   const showNav = arc !== null && currentScreen !== 'onboarding'
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', position: 'relative' }}>
+    <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', position: 'relative' }}>
 
       {/* Onboarding — full screen, highest z-index */}
       {currentScreen === 'onboarding' && <Onboarding />}
@@ -212,7 +212,7 @@ export default function App() {
           position: 'fixed',
           left: 0, right: 0, bottom: 0,
           zIndex: 8,
-          padding: '18px 56px 22px',
+          padding: '14px 16px calc(14px + env(safe-area-inset-bottom))',
           display: 'grid',
           gridTemplateColumns: 'repeat(5, 1fr)',
           background: '#000',
