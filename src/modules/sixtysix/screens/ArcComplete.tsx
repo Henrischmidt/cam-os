@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useSixtysixStore } from '../store/sixtysix.store'
+import { useIsMobile } from '../lib/useIsMobile'
 
 const mono = "'DM Mono', monospace"
 const serif = "'Instrument Serif', serif"
 
 export default function ArcComplete() {
   const { arc, habits, logs, setCurrentScreen } = useSixtysixStore()
+  const isMobile = useIsMobile()
   const [letter, setLetter] = useState('')
 
   if (!arc) return null
@@ -52,7 +54,9 @@ export default function ArcComplete() {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        padding: '80px 56px 100px',
+        padding: isMobile
+          ? 'calc(24px + env(safe-area-inset-top)) 20px calc(32px + env(safe-area-inset-bottom))'
+          : '80px 56px 100px',
         animation: 'scale-in 600ms cubic-bezier(0.16,1,0.3,1) both',
       }}
     >
@@ -135,10 +139,10 @@ export default function ArcComplete() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
             borderTop: '1px solid rgba(255,255,255,0.10)',
             borderBottom: '1px solid rgba(255,255,255,0.10)',
-            marginBottom: 56,
+            marginBottom: isMobile ? 40 : 56,
           }}
         >
           {stats.map((s, i) => (
@@ -146,7 +150,8 @@ export default function ArcComplete() {
               key={s.label}
               style={{
                 padding: '24px 20px',
-                borderRight: i < 2 ? '1px solid rgba(255,255,255,0.10)' : 'none',
+                borderRight: !isMobile && i < 2 ? '1px solid rgba(255,255,255,0.10)' : 'none',
+                borderBottom: isMobile && i < 2 ? '1px solid rgba(255,255,255,0.10)' : 'none',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 10,

@@ -349,6 +349,8 @@ export const useSixtysixStore = create<SixtysixStore>()(
           showStreakBreak: streakBroke,
           showCatchUp,
           catchUpDaysAway: showCatchUp ? daysAway : 0,
+          showDayComplete: false,
+          ...(updatedArc.status === 'complete' ? { currentScreen: 'arc-complete' } : {}),
         })
 
         writeSnapshot(updatedArc, habits, logs, cards, get().webhookUrl)
@@ -501,6 +503,7 @@ export const useSixtysixStore = create<SixtysixStore>()(
           arc: updatedArc,
           showMilestone,
           milestoneDay: showMilestone ? newDay : null,
+          ...(updatedArc.status === 'complete' ? { currentScreen: 'arc-complete' } : {}),
         })
 
         writeSnapshot(updatedArc, habits, logs, cards, get().webhookUrl)

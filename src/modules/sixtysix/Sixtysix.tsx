@@ -25,6 +25,52 @@ const MARKS_PULSE_CSS = `
 }
 `
 
+const WHY_SURFACE_CSS = `
+@keyframes whyFadeInOut {
+  0%   { opacity: 0; }
+  12%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+`
+
+function WhySurface({ identityStatement, onDone }: { identityStatement: string; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 3400)
+    return () => clearTimeout(t)
+  }, [onDone])
+
+  return (
+    <>
+      <style>{WHY_SURFACE_CSS}</style>
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 92, background: '#000',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        padding: '0 48px',
+        animation: 'whyFadeInOut 3.4s ease both',
+        pointerEvents: 'none',
+      }}>
+        <div style={{
+          fontFamily: mono, fontSize: 9, letterSpacing: '0.36em',
+          color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase',
+          marginBottom: 28, textAlign: 'center',
+        }}>
+          THIS IS WHY YOU STARTED
+        </div>
+        <div style={{
+          fontFamily: serif, fontStyle: 'italic',
+          fontSize: 'clamp(20px, 3.5vw, 32px)',
+          color: '#fff', textAlign: 'center',
+          lineHeight: 1.5, maxWidth: 560,
+        }}>
+          I am the kind of person who {identityStatement}.
+        </div>
+      </div>
+    </>
+  )
+}
+
 function MarksGrid({ marks }: { marks: number }) {
   if (marks === 0) return (
     <div style={{
@@ -94,8 +140,19 @@ export default function Sixtysix() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [newHabitName, setNewHabitName] = useState('')
   const [newHabitType, setNewHabitType] = useState<HabitType>('toggle')
+  const [showWhy, setShowWhy] = useState(false)
 
   useEffect(() => { rolloverDay() }, [rolloverDay])
+
+  // Show identity statement on day 8 and 22 (once per day per arc)
+  useEffect(() => {
+    if (!arc) return
+    if (arc.currentDay !== 8 && arc.currentDay !== 22) return
+    const key = `cam-os-why-${arc.id}-d${arc.currentDay}`
+    if (localStorage.getItem(key)) return
+    localStorage.setItem(key, '1')
+    setShowWhy(true)
+  }, [arc?.id, arc?.currentDay]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!arc) return
@@ -476,6 +533,13 @@ export default function Sixtysix() {
           identityStatement={arc.identityStatement}
           onSubmit={setDayReflection}
           onDismiss={dismissDayComplete}
+        />
+      )}
+
+      {showWhy && arc && (
+        <WhySurface
+          identityStatement={arc.identityStatement}
+          onDone={() => setShowWhy(false)}
         />
       )}
     </>
