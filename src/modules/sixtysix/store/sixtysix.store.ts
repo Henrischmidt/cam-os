@@ -71,6 +71,8 @@ interface SixtysixState {
   showCatchUp: boolean
   catchUpDaysAway: number
   dailyReflections: Record<string, string>  // date → one-word
+  notificationsEnabled: boolean
+  notificationTime: string  // HH:MM
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -100,6 +102,8 @@ interface SixtysixActions {
   dismissDayComplete: () => void
   resolveCatchUp: () => void
   updateIdentityStatement: (statement: string) => void
+  setNotificationsEnabled: (enabled: boolean) => void
+  setNotificationTime: (time: string) => void
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -146,6 +150,8 @@ const initialState: SixtysixState = {
   showCatchUp: false,
   catchUpDaysAway: 0,
   dailyReflections: {},
+  notificationsEnabled: false,
+  notificationTime: '21:00',
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -502,6 +508,10 @@ export const useSixtysixStore = create<SixtysixStore>()(
       dismissDayComplete: () => set({ showDayComplete: false }),
 
       resolveCatchUp: () => set({ showCatchUp: false, catchUpDaysAway: 0 }),
+
+      setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
+
+      setNotificationTime: (time) => set({ notificationTime: time }),
 
       updateIdentityStatement: (statement) => {
         const state = get()

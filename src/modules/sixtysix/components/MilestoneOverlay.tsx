@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { milestoneOverlayData } from '../lib/arcLogic'
+import { hapticHeavy } from '../lib/haptics'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,8 +27,8 @@ export default function MilestoneOverlay({ day, onDismiss, onArcComplete }: Mile
   const { above, name, below } = milestoneOverlayData(day)
 
   useEffect(() => {
-    // Kick off immediately — state 1: fade in
     setAnimState(1)
+    hapticHeavy()
 
     const t1 = setTimeout(() => setAnimState(2), 300)   // letters stagger in
     const t2 = setTimeout(() => setAnimState(3), 900)   // above/below appear

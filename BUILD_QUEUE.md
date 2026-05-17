@@ -2,11 +2,11 @@
 
 ## NEXT UP (work on this tonight)
 
-Phase 6 — Polish pass (animations refined, haptic hooks, notification placeholders)
+Phase 7 — CAM OS integration (Habits surface to Hub, N8N webhook endpoint, Shoot habit type)
 
 ## QUEUED
 
-Phase 7 — CAM OS integration (Habits surface to Hub, N8N webhook endpoint, Shoot habit type)
+(empty — Phase 7 is the final phase)
 
 ## COMPLETED
 
@@ -16,6 +16,7 @@ Phase 2 — Core React module (complete — PR open)
 Phase 3 — Behavioural layer (complete — PR open)
 Phase 4 — iCloud sync helper (complete — PR open)
 Phase 5 — Scriptable widget scripts (complete — PR open)
+Phase 6 — Polish pass (complete — PR open)
 
 ## BLOCKED
 

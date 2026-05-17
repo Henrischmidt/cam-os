@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import { useSixtysixStore } from './modules/sixtysix/store/sixtysix.store'
+import { todayString } from './modules/sixtysix/lib/arcLogic'
 import Sixtysix from './modules/sixtysix/Sixtysix'
 import Onboarding from './modules/sixtysix/screens/Onboarding'
 import Settings from './modules/sixtysix/screens/Settings'
@@ -91,7 +92,12 @@ const NAV_TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 // App
 // ──────────────────────────────────────────────
 export default function App() {
-  const { arc, currentScreen, currentTab, setCurrentScreen, setCurrentTab } = useSixtysixStore()
+  const {
+    arc, habits, logs,
+    currentScreen, currentTab,
+    notificationsEnabled, notificationTime,
+    setCurrentScreen, setCurrentTab,
+  } = useSixtysixStore()
 
   // If no arc, show onboarding
   useEffect(() => {
@@ -99,6 +105,35 @@ export default function App() {
       setCurrentScreen('onboarding')
     }
   }, [arc, currentScreen, setCurrentScreen])
+
+  // Daily reminder notification — fires once per day if past notification time and habits incomplete
+  useEffect(() => {
+    if (!arc || !notificationsEnabled) return
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
+
+    const now = new Date()
+    const [h, m] = notificationTime.split(':').map(Number)
+    const target = new Date(); target.setHours(h, m, 0, 0)
+    if (now < target) return
+
+    const today = todayString()
+    const lastNotified = localStorage.getItem('cam-os-notified')
+    if (lastNotified === today) return
+
+    const activeHabits = habits.filter(ht => ht.arcId === arc.id && ht.active)
+    const todayLogs = logs.filter(l => l.date === today && l.arcId === arc.id)
+    const done = activeHabits.filter(ht => todayLogs.find(l => l.habitId === ht.id && l.complete)).length
+    if (done >= activeHabits.length) return // already done — don't nag
+
+    try {
+      new Notification('THE 66', {
+        body: `Day ${arc.currentDay}. ${done}/${activeHabits.length} habits done. The arc continues.`,
+        silent: false,
+      })
+      localStorage.setItem('cam-os-notified', today)
+    } catch (_) { /* permission may have been revoked */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notificationsEnabled, notificationTime])
 
   // Keyboard shortcut: Escape closes overlay screens back to habits
   useEffect(() => {
