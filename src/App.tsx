@@ -45,13 +45,9 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
         position: 'fixed', inset: 0, zIndex: 9999,
         background: '#000',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        animation: 'splashFadeIn 300ms ease-out',
-        ...(wiping ? {
-          animationName: 'splashWipe',
-          animationDuration: '500ms',
-          animationTimingFunction: 'cubic-bezier(0.76,0,0.24,1)',
-          animationFillMode: 'forwards',
-        } : {}),
+        animation: wiping
+          ? 'splashWipe 500ms cubic-bezier(0.76,0,0.24,1) forwards'
+          : 'splashFadeIn 300ms ease-out',
       }}>
         <div style={{
           fontFamily: "'Instrument Serif', serif",
