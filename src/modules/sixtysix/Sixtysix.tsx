@@ -148,6 +148,8 @@ export default function Sixtysix() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [newHabitName, setNewHabitName] = useState('')
   const [newHabitType, setNewHabitType] = useState<HabitType>('toggle')
+  const [newHabitTarget, setNewHabitTarget] = useState(1)
+  const [newHabitUnit, setNewHabitUnit] = useState('')
   const [showWhy, setShowWhy] = useState(false)
 
   useEffect(() => { rolloverDay() }, [rolloverDay])
@@ -366,7 +368,7 @@ export default function Sixtysix() {
             })}
 
             {/* Add habit */}
-            {activeHabits.length < 5 && !showAddForm && (
+            {!showAddForm && (
               <div
                 role="button"
                 tabIndex={0}
@@ -374,8 +376,7 @@ export default function Sixtysix() {
                 onKeyDown={e => { if (e.key === 'Enter') setShowAddForm(true) }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 14,
-                  minHeight: 44,
-                  padding: '10px 0',
+                  minHeight: 44, padding: '10px 0',
                   borderTop: '1px solid rgba(255,255,255,0.06)',
                   cursor: 'pointer',
                 }}
@@ -396,36 +397,31 @@ export default function Sixtysix() {
               </div>
             )}
 
-            {activeHabits.length < 5 && showAddForm && (
+            {showAddForm && (
               <div style={{
                 borderTop: '1px solid rgba(255,255,255,0.06)',
-                padding: '14px 0',
-                display: 'flex', flexDirection: 'column', gap: 12,
+                padding: '16px 0',
+                display: 'flex', flexDirection: 'column', gap: 14,
               }}>
+                {/* Name */}
                 <input
                   autoFocus
                   value={newHabitName}
                   onChange={e => setNewHabitName(e.target.value)}
                   placeholder="Habit name"
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && newHabitName.trim()) {
-                      addHabit({ name: newHabitName.trim(), type: newHabitType, target: 1, whyStatement: '' })
-                      setNewHabitName(''); setShowAddForm(false)
-                    }
-                    if (e.key === 'Escape') { setNewHabitName(''); setShowAddForm(false) }
-                  }}
+                  onKeyDown={e => { if (e.key === 'Escape') { setNewHabitName(''); setShowAddForm(false) } }}
                   style={{
                     background: 'transparent', border: 'none',
                     borderBottom: '1px solid rgba(255,255,255,0.18)',
                     outline: 'none', color: '#fff',
                     fontFamily: sans, fontSize: 16,
-                    padding: '6px 0', width: '100%',
-                    minHeight: 44,
+                    padding: '6px 0', width: '100%', minHeight: 44,
                   }}
                 />
+                {/* Type */}
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {(['toggle','counter','timer','shoot'] as HabitType[]).map(t => (
-                    <button key={t} onClick={() => setNewHabitType(t)} style={{
+                  {(['toggle','counter','timer'] as HabitType[]).map(t => (
+                    <button key={t} onClick={() => { setNewHabitType(t); setNewHabitTarget(t === 'toggle' ? 1 : newHabitTarget) }} style={{
                       fontFamily: mono, fontSize: 9, letterSpacing: '0.28em',
                       textTransform: 'uppercase', padding: '8px 12px', cursor: 'pointer',
                       border: '1px solid rgba(255,255,255,0.14)',
@@ -435,13 +431,52 @@ export default function Sixtysix() {
                     }}>{t}</button>
                   ))}
                 </div>
+                {/* Target + unit for counter/timer */}
+                {(newHabitType === 'counter' || newHabitType === 'timer') && (
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.24em', color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase' }}>
+                        Goal
+                      </span>
+                      <input
+                        type="number"
+                        min={1}
+                        value={newHabitTarget}
+                        onChange={e => setNewHabitTarget(Math.max(1, Number(e.target.value)))}
+                        style={{
+                          width: 64, background: 'transparent', border: 'none',
+                          borderBottom: '1px solid rgba(255,255,255,0.18)',
+                          color: '#fff', fontFamily: mono, fontSize: 18,
+                          padding: '6px 0', outline: 'none', textAlign: 'center',
+                        }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+                      <span style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.24em', color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase' }}>
+                        Unit {newHabitType === 'timer' ? '(default: min)' : ''}
+                      </span>
+                      <input
+                        value={newHabitUnit}
+                        onChange={e => setNewHabitUnit(e.target.value)}
+                        placeholder={newHabitType === 'timer' ? 'min' : 'reps'}
+                        style={{
+                          background: 'transparent', border: 'none',
+                          borderBottom: '1px solid rgba(255,255,255,0.18)',
+                          color: '#fff', fontFamily: sans, fontSize: 16,
+                          padding: '6px 0', outline: 'none', width: '100%',
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {/* Actions */}
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
                     onClick={() => {
-                      if (newHabitName.trim()) {
-                        addHabit({ name: newHabitName.trim(), type: newHabitType, target: 1, whyStatement: '' })
-                        setNewHabitName(''); setShowAddForm(false)
-                      }
+                      if (!newHabitName.trim()) return
+                      const unit = newHabitUnit.trim() || (newHabitType === 'timer' ? 'min' : undefined)
+                      addHabit({ name: newHabitName.trim(), type: newHabitType, target: newHabitTarget, unit, whyStatement: '' })
+                      setNewHabitName(''); setNewHabitTarget(1); setNewHabitUnit(''); setShowAddForm(false)
                     }}
                     style={{
                       fontFamily: mono, fontSize: 10, letterSpacing: '0.28em',
@@ -450,16 +485,20 @@ export default function Sixtysix() {
                       padding: '10px 20px', cursor: 'pointer', minHeight: 44,
                       opacity: newHabitName.trim() ? 1 : 0.30,
                     }}
-                  >Add</button>
+                  >
+                    Add
+                  </button>
                   <button
-                    onClick={() => { setNewHabitName(''); setShowAddForm(false) }}
+                    onClick={() => { setNewHabitName(''); setNewHabitTarget(1); setNewHabitUnit(''); setShowAddForm(false) }}
                     style={{
                       fontFamily: mono, fontSize: 10, letterSpacing: '0.28em',
                       textTransform: 'uppercase', border: '1px solid rgba(255,255,255,0.10)',
                       background: 'transparent', color: 'rgba(255,255,255,0.35)',
                       padding: '10px 20px', cursor: 'pointer', minHeight: 44,
                     }}
-                  >Cancel</button>
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
             )}
