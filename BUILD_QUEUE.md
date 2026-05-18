@@ -2,11 +2,11 @@
 
 ## NEXT UP (work on this tonight)
 
-Phase 6 — Polish pass (animations refined, haptic hooks, notification placeholders)
+Phase 7 — CAM OS integration (Habits surface to Hub, N8N webhook endpoint, Shoot habit type)
 
 ## QUEUED
 
-Phase 7 — CAM OS integration (Habits surface to Hub, N8N webhook endpoint, Shoot habit type)
+(empty)
 
 ## COMPLETED
 
@@ -17,6 +17,7 @@ Phase 2.5 — iPhone layout refactor (built overnight — four-zone layout, mark
 Phase 3 — Behavioural layer (already on main — CatchUpFlow, DayCompleteModal, ArcComplete, WhySurface, identity reads)
 Phase 4 — iCloud sync helper (desktop: File System Access auto-write; iOS: Share API one-tap export to Scriptable folder)
 Phase 5 — Scriptable widget scripts (built as part of Phase 2)
+Phase 6 — Polish pass (haptic hooks on all key interactions, notification scheduling wired, mark pulse animation)
 
 ## BLOCKED
 

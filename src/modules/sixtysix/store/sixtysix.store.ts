@@ -53,6 +53,21 @@ export interface CardCollection {
   todayCardId: string | null
 }
 
+export interface LifeHabit {
+  id: string
+  name: string
+  type: 'check' | 'counter'
+  target: number
+  unit?: string
+}
+
+const DEFAULT_LIFE_HABITS: LifeHabit[] = [
+  { id: 'life-water', name: 'Water', type: 'counter', target: 8, unit: 'glasses' },
+  { id: 'life-fruit', name: 'Fruit', type: 'check', target: 1 },
+  { id: 'life-walk', name: 'Walk', type: 'check', target: 1 },
+  { id: 'life-sleep', name: 'Sleep', type: 'counter', target: 8, unit: 'hrs' },
+]
+
 // ─── State ────────────────────────────────────────────────────────────────────
 
 interface SixtysixState {
@@ -76,6 +91,8 @@ interface SixtysixState {
   webhookUrl: string
   dayBeginsHour: number
   morningRitualUrl: string
+  lifeHabits: LifeHabit[]
+  lifeLogs: Record<string, Record<string, number>>
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -110,6 +127,9 @@ interface SixtysixActions {
   setWebhookUrl: (url: string) => void
   setDayBeginsHour: (hour: number) => void
   setMorningRitualUrl: (url: string) => void
+  logLifeHabit: (habitId: string, value: number, date?: string) => void
+  addLifeHabit: (def: Omit<LifeHabit, 'id'>) => void
+  removeLifeHabit: (habitId: string) => void
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -161,6 +181,8 @@ const initialState: SixtysixState = {
   webhookUrl: '',
   dayBeginsHour: 4,
   morningRitualUrl: 'https://open.spotify.com/search/Jim%20Rohn',
+  lifeHabits: DEFAULT_LIFE_HABITS,
+  lifeLogs: {},
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -530,6 +552,26 @@ export const useSixtysixStore = create<SixtysixStore>()(
       setDayBeginsHour: (hour) => set({ dayBeginsHour: hour }),
 
       setMorningRitualUrl: (url) => set({ morningRitualUrl: url }),
+
+      logLifeHabit: (habitId, value, date) => {
+        const today = date ?? todayString(get().dayBeginsHour)
+        const lifeLogs = get().lifeLogs
+        set({
+          lifeLogs: {
+            ...lifeLogs,
+            [today]: { ...(lifeLogs[today] ?? {}), [habitId]: Math.max(0, value) },
+          },
+        })
+      },
+
+      addLifeHabit: (def) => {
+        const id = 'life-' + makeId()
+        set(s => ({ lifeHabits: [...s.lifeHabits, { id, ...def }] }))
+      },
+
+      removeLifeHabit: (habitId) => {
+        set(s => ({ lifeHabits: s.lifeHabits.filter(h => h.id !== habitId) }))
+      },
 
       updateIdentityStatement: (statement) => {
         const state = get()

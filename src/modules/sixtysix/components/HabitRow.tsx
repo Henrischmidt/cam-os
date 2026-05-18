@@ -1,5 +1,6 @@
 import React from 'react'
 import type { Habit, DayLog } from '../store/sixtysix.store'
+import { hapticLight } from '../lib/haptics'
 
 interface HabitRowProps {
   habit: Habit
@@ -156,6 +157,7 @@ const HOVER_STYLE = `
 `
 
 export default function HabitRow({ habit, todayLog, yesterdayLog, onClick }: HabitRowProps) {
+  function handleClick() { hapticLight(); onClick() }
   const value = todayLog?.value ?? 0
   const isComplete = todayLog?.complete === true
   const pct = Math.min(100, (value / habit.target) * 100)
@@ -274,10 +276,10 @@ export default function HabitRow({ habit, todayLog, yesterdayLog, onClick }: Hab
       <div
         className="habit-row"
         style={rowStyle}
-        onClick={onClick}
+        onClick={handleClick}
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => e.key === 'Enter' && onClick()}
+        onKeyDown={(e) => e.key === 'Enter' && handleClick()}
         aria-label={`${habit.name}, ${valueLabel}`}
       >
         <div style={iconBoxStyle}>
