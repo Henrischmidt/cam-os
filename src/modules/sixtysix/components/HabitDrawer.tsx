@@ -260,7 +260,7 @@ function TimerWidget({
     if (intervalRef.current) clearInterval(intervalRef.current)
     intervalRef.current = null
     setRunning(false)
-    onChange(Math.round(elapsed / 60))
+    onChange(elapsed / 60)
   }
 
   function reset() {
@@ -886,9 +886,13 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
                       >
                         {habit.type === 'toggle'
                           ? 'Log Today'
-                          : counterValue >= habit.target
-                            ? `Log · ${counterValue}${habit.unit ? ' ' + habit.unit : ''} ✓`
-                            : `Log · ${counterValue} / ${habit.target}${habit.unit ? ' ' + habit.unit : ''}`}
+                          : habit.type === 'timer'
+                            ? counterValue >= habit.target
+                              ? `Log · ${formatClock(Math.round(counterValue * 60))} ✓`
+                              : `Log · ${formatClock(Math.round(counterValue * 60))} / ${formatClock(habit.target * 60)}`
+                            : counterValue >= habit.target
+                              ? `Log · ${counterValue}${habit.unit ? ' ' + habit.unit : ''} ✓`
+                              : `Log · ${counterValue} / ${habit.target}${habit.unit ? ' ' + habit.unit : ''}`}
                       </button>
 
                       {/* Honest miss for yesterday */}
