@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useSixtysixStore } from './modules/sixtysix/store/sixtysix.store'
 import { todayString } from './modules/sixtysix/lib/arcLogic'
 import Sixtysix from './modules/sixtysix/Sixtysix'
@@ -8,6 +8,7 @@ import History from './modules/sixtysix/screens/History'
 import Cards from './modules/sixtysix/screens/Cards'
 import ArcComplete from './modules/sixtysix/screens/ArcComplete'
 import HubCard from './modules/sixtysix/components/HubCard'
+import Life from './modules/sixtysix/screens/Life'
 
 // ──────────────────────────────────────────────
 // Tab icon SVGs
@@ -50,6 +51,22 @@ function FocusIcon() {
     </svg>
   )
 }
+
+// ──────────────────────────────────────────────
+// Tab slide animation
+// ──────────────────────────────────────────────
+const TAB_SLIDE_CSS = `
+@keyframes tabSlideIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes tabSlideInLeft {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+`
+
+const TAB_ORDER: Tab[] = ['hub', 'life', 'habits', 'work', 'focus']
 
 // ──────────────────────────────────────────────
 // Stub screens for other tabs
@@ -108,6 +125,23 @@ export default function App() {
     }
   }, [arc, currentScreen, setCurrentScreen])
 
+  // Always land on habits tab when app opens
+  const didMount = useRef(false)
+  useEffect(() => {
+    if (!didMount.current && arc) {
+      setCurrentTab('habits')
+      setCurrentScreen('habits')
+      didMount.current = true
+    } else {
+      didMount.current = true
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Track slide direction
+  const prevTabRef = useRef(currentTab)
+  const slideDir = TAB_ORDER.indexOf(currentTab) >= TAB_ORDER.indexOf(prevTabRef.current) ? 'right' : 'left'
+  useEffect(() => { prevTabRef.current = currentTab }, [currentTab])
+
   // Daily reminder notification — fires once per day if past notification time and habits incomplete
   useEffect(() => {
     if (!arc || !notificationsEnabled) return
@@ -160,6 +194,7 @@ export default function App() {
 
   return (
     <div style={{ height: '100dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: '#000', color: '#fff', position: 'relative' }}>
+      <style>{TAB_SLIDE_CSS}</style>
 
       {/* Onboarding — full screen, highest z-index */}
       {currentScreen === 'onboarding' && <Onboarding />}
@@ -202,7 +237,11 @@ export default function App() {
           <HubCard />
         </div>
       )}
-      {arc && currentScreen === 'habits' && currentTab === 'life' && <StubScreen label="LIFE" />}
+      {arc && currentScreen === 'habits' && currentTab === 'life' && (
+        <div key="life" style={{ flex: 1, minHeight: 0, animation: `${slideDir === 'right' ? 'tabSlideIn' : 'tabSlideInLeft'} 250ms ease-out` }}>
+          <Life />
+        </div>
+      )}
       {arc && currentScreen === 'habits' && currentTab === 'work' && <StubScreen label="WORK" />}
       {arc && currentScreen === 'habits' && currentTab === 'focus' && <StubScreen label="FOCUS" />}
 
@@ -212,7 +251,7 @@ export default function App() {
           position: 'fixed',
           left: 0, right: 0, bottom: 0,
           zIndex: 8,
-          padding: '14px 16px calc(14px + env(safe-area-inset-bottom))',
+          padding: '10px 16px calc(10px + env(safe-area-inset-bottom))',
           display: 'grid',
           gridTemplateColumns: 'repeat(5, 1fr)',
           background: '#000',
@@ -240,7 +279,20 @@ export default function App() {
                 }}
               >
                 <span style={{ opacity: isActive ? 1 : 0.7 }}>{tab.icon}</span>
-                {isActive ? (
+                {tab.id === 'habits' ? (
+                  <span style={{
+                    fontFamily: "'Instrument Serif', serif",
+                    fontStyle: 'italic',
+                    fontSize: isActive ? 16 : 13,
+                    letterSpacing: '0.02em',
+                    color: isActive ? '#fff' : 'rgba(255,255,255,0.35)',
+                    transition: 'font-size 200ms ease, color 200ms ease',
+                    lineHeight: 1,
+                    marginTop: 2,
+                  }}>
+                    66
+                  </span>
+                ) : isActive ? (
                   <span style={{
                     border: '1px solid #fff',
                     padding: '4px 12px 3px',
