@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useSixtysixStore } from './modules/sixtysix/store/sixtysix.store'
 import { todayString } from './modules/sixtysix/lib/arcLogic'
 import Sixtysix from './modules/sixtysix/Sixtysix'
@@ -9,6 +9,66 @@ import Cards from './modules/sixtysix/screens/Cards'
 import ArcComplete from './modules/sixtysix/screens/ArcComplete'
 import HubCard from './modules/sixtysix/components/HubCard'
 import Life from './modules/sixtysix/screens/Life'
+
+// ──────────────────────────────────────────────
+// Splash screen
+// ──────────────────────────────────────────────
+const SPLASH_CSS = `
+@keyframes splashFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes splashWipe {
+  from { clip-path: inset(0 0% 0 0); }
+  to   { clip-path: inset(0 100% 0 0); }
+}
+`
+
+function SplashScreen({ onDone }: { onDone: () => void }) {
+  const [wiping, setWiping] = useState(false)
+
+  useEffect(() => {
+    const hold = setTimeout(() => setWiping(true), 900)
+    return () => clearTimeout(hold)
+  }, [])
+
+  useEffect(() => {
+    if (!wiping) return
+    const done = setTimeout(onDone, 550)
+    return () => clearTimeout(done)
+  }, [wiping, onDone])
+
+  return (
+    <>
+      <style>{SPLASH_CSS}</style>
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: '#000',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        animation: 'splashFadeIn 300ms ease-out',
+        ...(wiping ? {
+          animationName: 'splashWipe',
+          animationDuration: '500ms',
+          animationTimingFunction: 'cubic-bezier(0.76,0,0.24,1)',
+          animationFillMode: 'forwards',
+        } : {}),
+      }}>
+        <div style={{
+          fontFamily: "'Instrument Serif', serif",
+          fontStyle: 'italic',
+          fontSize: 96,
+          fontWeight: 400,
+          color: '#fff',
+          lineHeight: 1,
+          letterSpacing: '-0.02em',
+          userSelect: 'none',
+        }}>
+          66
+        </div>
+      </div>
+    </>
+  )
+}
 
 // ──────────────────────────────────────────────
 // Tab icon SVGs
@@ -118,6 +178,12 @@ export default function App() {
     setCurrentScreen, setCurrentTab,
   } = useSixtysixStore()
 
+  const [showSplash, setShowSplash] = useState(() => !sessionStorage.getItem('cam-os-splash-shown'))
+  function dismissSplash() {
+    sessionStorage.setItem('cam-os-splash-shown', '1')
+    setShowSplash(false)
+  }
+
   // If no arc, show onboarding
   useEffect(() => {
     if (!arc && currentScreen !== 'onboarding') {
@@ -195,6 +261,9 @@ export default function App() {
   return (
     <div style={{ height: '100dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: '#000', color: '#fff', position: 'relative' }}>
       <style>{TAB_SLIDE_CSS}</style>
+
+      {/* Launch splash */}
+      {showSplash && <SplashScreen onDone={dismissSplash} />}
 
       {/* Onboarding — full screen, highest z-index */}
       {currentScreen === 'onboarding' && <Onboarding />}
