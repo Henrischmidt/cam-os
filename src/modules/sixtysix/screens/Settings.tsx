@@ -5,7 +5,10 @@ import {
   iCloudSyncConfigured,
   connectICloudFolder,
   disconnectICloudFolder,
+  iosExportAvailable,
+  exportWidgetData,
 } from '../lib/icloudSync'
+import { readSnapshotJson } from '../lib/snapshot'
 import { useIsMobile } from '../lib/useIsMobile'
 
 // ─── Style tokens ─────────────────────────────────────────────────────────────
@@ -202,8 +205,11 @@ export default function Settings() {
   const [endArcConfirm, setEndArcConfirm] = useState(false)
 
   const syncAvailable = iCloudSyncAvailable()
+  const iosShare = iosExportAvailable()
   const [syncConfigured, setSyncConfigured] = useState(false)
   const [syncConnecting, setSyncConnecting] = useState(false)
+  const [iosSyncing, setIosSyncing] = useState(false)
+  const [iosSyncResult, setIosSyncResult] = useState<'idle' | 'ok' | 'fail'>('idle')
 
   useEffect(() => {
     iCloudSyncConfigured().then(setSyncConfigured)
@@ -383,32 +389,12 @@ export default function Settings() {
       {/* ── ICLOUD SYNC ── */}
       <SectionHeader label="iCloud Sync" />
 
-      {!syncAvailable ? (
-        <div
-          style={{
-            borderTop: `1px solid ${rule}`,
-            padding: '20px 0',
-            fontFamily: sans,
-            fontSize: 13,
-            color: fg25,
-            lineHeight: 1.6,
-          }}
-        >
-          iCloud sync requires a Chromium browser (Chrome, Edge, Arc). Open CAM OS there to connect.
-        </div>
-      ) : (
+      {syncAvailable ? (
+        /* ── Desktop: File System Access API (Chrome / Edge / Arc) ── */
         <>
           <Row label="Scriptable Folder">
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span
-                style={{
-                  fontFamily: mono,
-                  fontSize: 10,
-                  letterSpacing: '0.2em',
-                  color: syncConfigured ? '#fff' : fg25,
-                  textTransform: 'uppercase',
-                }}
-              >
+              <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.2em', color: syncConfigured ? '#fff' : fg25, textTransform: 'uppercase' }}>
                 {syncConfigured ? 'CONNECTED' : 'NOT CONNECTED'}
               </span>
               <button
@@ -425,15 +411,11 @@ export default function Settings() {
                   }
                 }}
                 style={{
-                  fontFamily: mono,
-                  fontSize: 10,
-                  letterSpacing: '0.28em',
+                  fontFamily: mono, fontSize: 10, letterSpacing: '0.28em',
                   textTransform: 'uppercase',
                   color: syncConfigured ? 'rgba(255,255,255,0.30)' : fg60,
-                  background: 'transparent',
-                  border: `1px solid rgba(255,255,255,0.12)`,
-                  padding: '10px 20px',
-                  cursor: syncConnecting ? 'default' : 'pointer',
+                  background: 'transparent', border: `1px solid rgba(255,255,255,0.12)`,
+                  padding: '10px 20px', cursor: syncConnecting ? 'default' : 'pointer',
                   opacity: syncConnecting ? 0.5 : 1,
                 }}
               >
@@ -441,21 +423,57 @@ export default function Settings() {
               </button>
             </div>
           </Row>
-
-          <p
-            style={{
-              fontFamily: sans,
-              fontSize: 12,
-              color: fg25,
-              lineHeight: 1.6,
-              margin: '4px 0 0',
-            }}
-          >
+          <p style={{ fontFamily: sans, fontSize: 12, color: fg25, lineHeight: 1.6, margin: '4px 0 0' }}>
             {syncConfigured
-              ? `Every habit log writes the66-state.json to your selected folder. iCloud Drive syncs it to your iPhone where Scriptable widgets can read it.`
-              : `Select your iCloud Drive › Scriptable folder. CAM OS will write the66-state.json there after every update.`}
+              ? 'Every habit log writes the66-state.json to your selected folder. iCloud syncs it to iPhone for Scriptable widgets.'
+              : 'Select iCloud Drive › Scriptable. CAM OS writes the66-state.json there on every update.'}
           </p>
         </>
+      ) : iosShare ? (
+        /* ── iOS: Web Share API — manual one-tap export ── */
+        <>
+          <Row label="Scriptable Widget">
+            <button
+              disabled={iosSyncing}
+              onClick={async () => {
+                const json = readSnapshotJson()
+                if (!json) return
+                setIosSyncing(true)
+                setIosSyncResult('idle')
+                const ok = await exportWidgetData(json)
+                setIosSyncing(false)
+                setIosSyncResult(ok ? 'ok' : 'fail')
+                if (ok) setTimeout(() => setIosSyncResult('idle'), 3000)
+              }}
+              style={{
+                fontFamily: mono, fontSize: 10, letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                color: iosSyncResult === 'ok' ? '#fff' : fg60,
+                background: 'transparent',
+                border: `1px solid ${iosSyncResult === 'ok' ? 'rgba(255,255,255,0.40)' : 'rgba(255,255,255,0.12)'}`,
+                padding: '10px 20px',
+                cursor: iosSyncing ? 'default' : 'pointer',
+                opacity: iosSyncing ? 0.5 : 1,
+                transition: 'color 400ms ease, border-color 400ms ease',
+              }}
+            >
+              {iosSyncing ? 'Sharing…' : iosSyncResult === 'ok' ? 'Shared' : 'Sync Widget'}
+            </button>
+          </Row>
+          <p style={{ fontFamily: sans, fontSize: 12, color: fg25, lineHeight: 1.6, margin: '4px 0 0' }}>
+            Tap Sync Widget, then Save to Files › iCloud Drive › Scriptable. Do this after completing your habits. The widget reads the file on its next refresh.
+          </p>
+          {iosSyncResult === 'fail' && (
+            <p style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', margin: '8px 0 0' }}>
+              Nothing to sync yet — complete a habit first.
+            </p>
+          )}
+        </>
+      ) : (
+        /* ── Unsupported browser ── */
+        <div style={{ borderTop: `1px solid ${rule}`, padding: '20px 0', fontFamily: sans, fontSize: 13, color: fg25, lineHeight: 1.6 }}>
+          Widget sync requires Chrome, Edge, or Arc on desktop, or Safari on iPhone. Open CAM OS in one of those to connect.
+        </div>
       )}
 
       {/* ── MORNING RITUAL ── */}

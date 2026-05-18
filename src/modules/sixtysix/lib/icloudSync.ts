@@ -1,6 +1,9 @@
 // Writes the66-state.json to a user-selected directory (iCloud Drive / Scriptable folder).
 // Uses the File System Access API — Chromium only; gracefully no-ops elsewhere.
 // The directory handle is persisted in IndexedDB so the user only picks once.
+//
+// iOS path: uses Web Share API (navigator.share with File) — user saves to
+// Files › iCloud Drive › Scriptable manually. Detected via iosExportAvailable().
 
 const IDB_NAME = 'cam-os-icloud-sync'
 const IDB_STORE = 'handles'
@@ -90,6 +93,56 @@ export async function iCloudSyncConfigured(): Promise<boolean> {
 export async function disconnectICloudFolder(): Promise<void> {
   await clearHandle()
 }
+
+// ─── iOS Share API path ───────────────────────────────────────────────────────
+
+/**
+ * Returns true if the Web Share API can share files on this device (iOS 15+).
+ * Used to show the iOS manual-export path in Settings when File System Access
+ * is unavailable.
+ */
+export function iosExportAvailable(): boolean {
+  if (typeof window === 'undefined' || !('share' in navigator)) return false
+  try {
+    return navigator.canShare({ files: [new File([''], 'test.json', { type: 'application/json' })] })
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Share the66-state.json via the iOS share sheet so the user can save it to
+ * Files › iCloud Drive › Scriptable. Returns true if the share was initiated.
+ * Falls back to a data-URI download if share is unavailable.
+ */
+export async function exportWidgetData(json: string): Promise<boolean> {
+  const file = new File([json], FILE_NAME, { type: 'application/json' })
+
+  try {
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'The 66 — Widget Data' })
+      return true
+    }
+  } catch (e) {
+    // User cancelled (AbortError) or share failed — not an error
+    if (e instanceof Error && e.name === 'AbortError') return false
+  }
+
+  // Fallback: trigger browser download
+  try {
+    const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = FILE_NAME
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    return true
+  } catch {
+    return false
+  }
+}
+
+// ─── Desktop File System Access path ─────────────────────────────────────────
 
 /**
  * Write the snapshot JSON to the66-state.json in the stored folder.

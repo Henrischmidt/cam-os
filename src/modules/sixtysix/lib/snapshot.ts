@@ -28,6 +28,15 @@ interface Snapshot {
   todayCard: { text: string; attribution: string } | null
 }
 
+/** Read the last-written snapshot JSON from localStorage (for manual iOS export). */
+export function readSnapshotJson(): string | null {
+  try {
+    return localStorage.getItem(SNAPSHOT_KEY)
+  } catch {
+    return null
+  }
+}
+
 export function writeSnapshot(
   arc: Arc | null,
   habits: Habit[],
