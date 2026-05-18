@@ -31,7 +31,7 @@ export default function History() {
         background: '#000',
         zIndex: 70,
         overflowY: 'auto',
-        padding: '40px 56px 100px',
+        padding: 'calc(env(safe-area-inset-top) + 20px) 20px calc(80px + env(safe-area-inset-bottom))',
       }}
     >
       {/* Back header */}

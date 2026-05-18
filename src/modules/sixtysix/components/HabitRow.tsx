@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import type { Habit, DayLog } from '../store/sixtysix.store'
 
 interface HabitRowProps {
@@ -148,29 +148,14 @@ function Chip({ label, variant }: ChipProps) {
 
 const HOVER_STYLE = `
   .habit-row {
-    transition: padding-left 400ms cubic-bezier(0.16,1,0.3,1);
+    transition: opacity 100ms ease-out;
   }
-  .habit-row:hover {
-    padding-left: 6px !important;
-  }
-  .habit-row:hover .habit-row-arrow {
-    transform: translateX(3px);
-  }
-  .habit-row:hover .habit-row-icon {
-    opacity: 1;
-  }
-  .habit-row-arrow {
-    transition: transform 400ms cubic-bezier(0.16,1,0.3,1);
-  }
-  .habit-row-icon {
-    transition: opacity 400ms ease-out;
-    opacity: 0.85;
+  .habit-row:active {
+    opacity: 0.7;
   }
 `
 
 export default function HabitRow({ habit, todayLog, yesterdayLog, onClick }: HabitRowProps) {
-  const [_hovered, setHovered] = useState(false)
-
   const value = todayLog?.value ?? 0
   const isComplete = todayLog?.complete === true
   const pct = Math.min(100, (value / habit.target) * 100)
@@ -290,14 +275,12 @@ export default function HabitRow({ habit, todayLog, yesterdayLog, onClick }: Hab
         className="habit-row"
         style={rowStyle}
         onClick={onClick}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => e.key === 'Enter' && onClick()}
         aria-label={`${habit.name}, ${valueLabel}`}
       >
-        <div style={iconBoxStyle} className="habit-row-icon">
+        <div style={iconBoxStyle}>
           <HabitIcon type={habit.type} dim={isComplete} />
         </div>
 
@@ -313,7 +296,7 @@ export default function HabitRow({ habit, todayLog, yesterdayLog, onClick }: Hab
 
         <span style={valueStyle}>{valueLabel}</span>
 
-        <span className="habit-row-arrow">
+        <span>
           <ChevronIcon />
         </span>
       </div>

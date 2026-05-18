@@ -502,7 +502,7 @@ export default function Onboarding() {
       {/* Header */}
       <header
         style={{
-          padding: isMobile ? '20px 20px 0' : '28px 48px 0',
+          padding: isMobile ? 'calc(env(safe-area-inset-top) + 16px) 20px 0' : '28px 48px 0',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
