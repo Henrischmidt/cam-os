@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useSixtysixStore } from '../store/sixtysix.store'
 import {
   iCloudSyncAvailable,
@@ -180,6 +180,8 @@ export default function Settings() {
     toggleHardMode,
     setHonestMissWordMin,
     exportArcData,
+    exportBackup,
+    importBackup,
     updateIdentityStatement,
     updateHabit,
     setNotificationsEnabled,
@@ -605,6 +607,8 @@ export default function Settings() {
       {/* ── DATA ── */}
       <SectionHeader label="Data" />
 
+      <BackupRestore exportBackup={exportBackup} importBackup={importBackup} />
+
       <Row label="Export Arc Data">
         <button
           onClick={exportArcData}
@@ -620,7 +624,7 @@ export default function Settings() {
             cursor: 'pointer',
           }}
         >
-          Export
+          Export CSV
         </button>
       </Row>
 
@@ -804,6 +808,70 @@ export default function Settings() {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Backup / Restore ─────────────────────────────────────────────────────────
+
+function BackupRestore({ exportBackup, importBackup }: {
+  exportBackup: () => void
+  importBackup: (json: string) => boolean
+}) {
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [importState, setImportState] = useState<'idle' | 'ok' | 'fail'>('idle')
+
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const ok = importBackup(ev.target?.result as string)
+      setImportState(ok ? 'ok' : 'fail')
+      if (ok) setTimeout(() => setImportState('idle'), 3000)
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
+
+  return (
+    <div style={{ borderTop: `1px solid ${rule}`, padding: '20px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <span style={{ fontFamily: mono, fontSize: 11, letterSpacing: '0.2em', color: fg60, textTransform: 'uppercase' }}>
+          Backup / Restore
+        </span>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={exportBackup}
+            style={{
+              fontFamily: mono, fontSize: 10, letterSpacing: '0.28em',
+              textTransform: 'uppercase', color: fg60,
+              background: 'transparent', border: `1px solid rgba(255,255,255,0.12)`,
+              padding: '10px 20px', cursor: 'pointer',
+            }}
+          >
+            Export
+          </button>
+          <button
+            onClick={() => fileRef.current?.click()}
+            style={{
+              fontFamily: mono, fontSize: 10, letterSpacing: '0.28em',
+              textTransform: 'uppercase',
+              color: importState === 'ok' ? '#fff' : importState === 'fail' ? 'rgba(255,100,100,0.80)' : fg60,
+              background: 'transparent',
+              border: `1px solid ${importState === 'ok' ? 'rgba(255,255,255,0.40)' : importState === 'fail' ? 'rgba(255,100,100,0.30)' : 'rgba(255,255,255,0.12)'}`,
+              padding: '10px 20px', cursor: 'pointer',
+              transition: 'color 300ms ease, border-color 300ms ease',
+            }}
+          >
+            {importState === 'ok' ? 'Restored' : importState === 'fail' ? 'Invalid' : 'Restore'}
+          </button>
+          <input ref={fileRef} type="file" accept=".json" onChange={handleFile} style={{ display: 'none' }} />
+        </div>
+      </div>
+      <p style={{ fontFamily: sans, fontSize: 12, color: fg25, lineHeight: 1.6, margin: 0 }}>
+        Export saves everything to a .json file. Before deleting the app or switching devices, export first — then restore after re-adding.
+      </p>
     </div>
   )
 }

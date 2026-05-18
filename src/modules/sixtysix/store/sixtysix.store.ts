@@ -130,6 +130,8 @@ interface SixtysixActions {
   logLifeHabit: (habitId: string, value: number, date?: string) => void
   addLifeHabit: (def: Omit<LifeHabit, 'id'>) => void
   removeLifeHabit: (habitId: string) => void
+  exportBackup: () => void
+  importBackup: (json: string) => boolean
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -571,6 +573,60 @@ export const useSixtysixStore = create<SixtysixStore>()(
 
       removeLifeHabit: (habitId) => {
         set(s => ({ lifeHabits: s.lifeHabits.filter(h => h.id !== habitId) }))
+      },
+
+      exportBackup: () => {
+        const s = get()
+        const data = {
+          v: 1,
+          arc: s.arc,
+          habits: s.habits,
+          logs: s.logs,
+          cards: s.cards,
+          lifeHabits: s.lifeHabits,
+          lifeLogs: s.lifeLogs,
+          dailyReflections: s.dailyReflections,
+          honestMissWordMin: s.honestMissWordMin,
+          notificationsEnabled: s.notificationsEnabled,
+          notificationTime: s.notificationTime,
+          dayBeginsHour: s.dayBeginsHour,
+          webhookUrl: s.webhookUrl,
+          morningRitualUrl: s.morningRitualUrl,
+        }
+        const json = JSON.stringify(data, null, 2)
+        const blob = new Blob([json], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `the66-backup-${new Date().toISOString().slice(0, 10)}.json`
+        a.click()
+        URL.revokeObjectURL(url)
+      },
+
+      importBackup: (json: string) => {
+        try {
+          const data = JSON.parse(json)
+          if (!data.v || !data.arc) return false
+          set({
+            arc: data.arc ?? null,
+            habits: data.habits ?? [],
+            logs: data.logs ?? [],
+            cards: data.cards ?? initialCards,
+            lifeHabits: data.lifeHabits ?? DEFAULT_LIFE_HABITS,
+            lifeLogs: data.lifeLogs ?? {},
+            dailyReflections: data.dailyReflections ?? {},
+            honestMissWordMin: data.honestMissWordMin ?? 5,
+            notificationsEnabled: data.notificationsEnabled ?? false,
+            notificationTime: data.notificationTime ?? '21:00',
+            dayBeginsHour: data.dayBeginsHour ?? 4,
+            webhookUrl: data.webhookUrl ?? '',
+            morningRitualUrl: data.morningRitualUrl ?? '',
+            currentScreen: data.arc ? 'habits' : 'onboarding',
+          })
+          return true
+        } catch {
+          return false
+        }
       },
 
       updateIdentityStatement: (statement) => {
