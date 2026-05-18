@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import type { Habit, DayLog, Arc } from '../store/sixtysix.store'
 import { useSixtysixStore } from '../store/sixtysix.store'
 import { phaseName, todayString } from '../lib/arcLogic'
@@ -215,6 +215,141 @@ function QuickLog({ value, target, unit, increments, onChange }: QuickLogProps) 
   )
 }
 
+// ─── Timer helpers ────────────────────────────────────────────────────────────
+
+function formatClock(seconds: number): string {
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
+// ─── TimerWidget ──────────────────────────────────────────────────────────────
+
+function TimerWidget({
+  target,
+  unit,
+  onChange,
+}: {
+  target: number
+  unit: string
+  onChange: (minutes: number) => void
+}) {
+  const [running, setRunning] = useState(false)
+  const [elapsed, setElapsed] = useState(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const startTimeRef = useRef(0)
+  const baseElapsedRef = useRef(0)
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [])
+
+  function start() {
+    startTimeRef.current = Date.now()
+    baseElapsedRef.current = elapsed
+    setRunning(true)
+    intervalRef.current = setInterval(() => {
+      const delta = Math.floor((Date.now() - startTimeRef.current) / 1000)
+      setElapsed(baseElapsedRef.current + delta)
+    }, 250)
+  }
+
+  function stop() {
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    intervalRef.current = null
+    setRunning(false)
+    onChange(Math.round(elapsed / 60))
+  }
+
+  function reset() {
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    intervalRef.current = null
+    setRunning(false)
+    setElapsed(0)
+    onChange(0)
+  }
+
+  const targetSecs = target * 60
+  const pct = Math.min(100, targetSecs > 0 ? (elapsed / targetSecs) * 100 : 0)
+  const atTarget = elapsed > 0 && elapsed >= targetSecs
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 4 }}>
+      {/* Clock display */}
+      <div style={{ textAlign: 'center', padding: '8px 0' }}>
+        <div
+          style={{
+            fontFamily: mono,
+            fontSize: 64,
+            letterSpacing: '-0.02em',
+            lineHeight: 1,
+            color: running ? '#fff' : elapsed > 0 ? 'rgba(255,255,255,0.80)' : 'rgba(255,255,255,0.20)',
+            transition: 'color 300ms ease',
+          }}
+        >
+          {formatClock(elapsed)}
+        </div>
+        <div
+          style={{
+            fontFamily: mono,
+            fontSize: 10,
+            letterSpacing: '0.2em',
+            color: atTarget ? 'rgba(255,255,255,0.50)' : 'rgba(255,255,255,0.20)',
+            textTransform: 'uppercase',
+            marginTop: 8,
+            transition: 'color 300ms ease',
+          }}
+        >
+          {atTarget ? 'target reached' : `target ${target} ${unit}`}
+        </div>
+        {/* Progress bar */}
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', marginTop: 12, position: 'relative' }}>
+          <div
+            style={{
+              position: 'absolute', top: 0, left: 0, height: '100%',
+              width: `${pct}%`,
+              background: atTarget ? '#fff' : 'rgba(255,255,255,0.50)',
+              transition: running ? 'width 250ms linear' : 'none',
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Idle */}
+      {!running && elapsed === 0 && (
+        <button onClick={start} className="habit-drawer-ghost-btn" style={ghostBtn}>
+          Start
+        </button>
+      )}
+
+      {/* Running */}
+      {running && (
+        <button
+          onClick={stop}
+          className="habit-drawer-stop-btn"
+          style={{ ...primaryBtn, background: '#fff', color: '#000' }}
+        >
+          Stop
+        </button>
+      )}
+
+      {/* Stopped */}
+      {!running && elapsed > 0 && (
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={reset} className="habit-drawer-ghost-btn" style={{ ...ghostBtn, flex: 1 }}>
+            Reset
+          </button>
+          <button onClick={start} className="habit-drawer-ghost-btn" style={{ ...ghostBtn, flex: 1 }}>
+            Resume
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── HabitDrawer ──────────────────────────────────────────────────────────────
 
 export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerProps) {
@@ -349,6 +484,9 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
         }
         .habit-drawer-ghost-btn:active {
           background: rgba(255,255,255,0.04) !important;
+        }
+        .habit-drawer-stop-btn:active {
+          opacity: 0.7 !important;
         }
       `}</style>
 
@@ -730,13 +868,12 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
                         />
                       )}
 
-                      {/* Timer quick-log */}
+                      {/* Timer stopwatch */}
                       {habit.type === 'timer' && (
-                        <QuickLog
-                          value={counterValue}
+                        <TimerWidget
+                          key={habit.id}
                           target={habit.target}
                           unit={habit.unit ?? 'min'}
-                          increments={[5, 10, 20, 30]}
                           onChange={setCounterValue}
                         />
                       )}
