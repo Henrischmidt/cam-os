@@ -2,11 +2,10 @@
 
 ## NEXT UP (work on this tonight)
 
-Phase 3 — Behavioural layer (identity reads, why surfacing, end-of-day reflection, Day 67 experience, catch-up flow)
+Phase 4 — iCloud sync helper (writes the66-state.json for Scriptable widgets)
 
 ## QUEUED
 
-Phase 4 — iCloud sync helper (writes the66-state.json for Scriptable widgets)
 Phase 6 — Polish pass (animations refined, haptic hooks, notification placeholders)
 Phase 7 — CAM OS integration (Habits surface to Hub, N8N webhook endpoint, Shoot habit type)
 
@@ -16,6 +15,7 @@ Phase 0 — Strategy and architecture
 Phase 1 — Claude Design mockups (pending Cam — add HTML files to /mockups/)
 Phase 2 — Core React module (built overnight — components, store, arc logic, Scriptable widgets, iCloud sync scaffold)
 Phase 2.5 — iPhone layout refactor (built overnight — four-zone layout, marks grid rows-of-10, active tap states, PWA meta/manifest, safe areas)
+Phase 3 — Behavioural layer (already on main — CatchUpFlow, DayCompleteModal, ArcComplete, WhySurface, identity reads)
 Phase 5 — Scriptable widget scripts (built as part of Phase 2)
 
 ## BLOCKED
