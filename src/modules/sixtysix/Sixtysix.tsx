@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSixtysixStore } from './store/sixtysix.store'
 import type { HabitType } from './store/sixtysix.store'
 import { pullDailyCard } from './lib/cardLogic'
 import { todayString, phaseName, phaseNumber } from './lib/arcLogic'
+import { hapticSuccess } from './lib/haptics'
+import { initNotifications, cancelNotifications } from './lib/notificationScheduler'
 import HabitRow from './components/HabitRow'
 import DailyCard from './components/DailyCard'
 import HabitDrawer from './components/HabitDrawer'
@@ -139,6 +141,8 @@ export default function Sixtysix() {
     resolveCatchUp,
     dayBeginsHour,
     addHabit,
+    notificationsEnabled,
+    notificationTime,
   } = useSixtysixStore()
 
   const [showAddForm, setShowAddForm] = useState(false)
@@ -165,6 +169,23 @@ export default function Sixtysix() {
       setTodayCard(pullDailyCard(arc, cards))
     }
   }, [arc, cards, setTodayCard, dayBeginsHour])
+
+  // Daily reminder notifications
+  useEffect(() => {
+    if (notificationsEnabled) {
+      initNotifications(notificationTime)
+    } else {
+      cancelNotifications()
+    }
+    return () => cancelNotifications()
+  }, [notificationsEnabled, notificationTime])
+
+  // Haptic when all habits complete for the day
+  const prevDayComplete = useRef(false)
+  useEffect(() => {
+    if (showDayComplete && !prevDayComplete.current) hapticSuccess()
+    prevDayComplete.current = showDayComplete
+  }, [showDayComplete])
 
   if (!arc) return null
 
