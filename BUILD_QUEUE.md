@@ -2,7 +2,7 @@
 
 ## NEXT UP (work on this tonight)
 
-Phase 7 — CAM OS integration (Habits surface to Hub, N8N webhook endpoint, Shoot habit type)
+(empty — all phases complete)
 
 ## QUEUED
 
@@ -18,6 +18,7 @@ Phase 3 — Behavioural layer (already on main — CatchUpFlow, DayCompleteModal
 Phase 4 — iCloud sync helper (desktop: File System Access auto-write; iOS: Share API one-tap export to Scriptable folder)
 Phase 5 — Scriptable widget scripts (built as part of Phase 2)
 Phase 6 — Polish pass (haptic hooks on all key interactions, notification scheduling wired, mark pulse animation)
+Phase 7 — CAM OS integration (Habits surface to Hub, N8N webhook endpoint, Shoot habit type — HabitDrawer shoot fix, all three features verified complete)
 
 ## BLOCKED
 

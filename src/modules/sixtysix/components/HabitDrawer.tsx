@@ -411,7 +411,7 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
   // Log actions
   function handleLog() {
     if (!habit) return
-    const value = habit.type === 'toggle' ? habit.target : counterValue
+    const value = (habit.type === 'toggle' || habit.type === 'shoot') ? habit.target : counterValue
     logHabit(habit.id, value)
     hapticLight()
     flash()
@@ -829,7 +829,7 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
                           marginBottom: 8,
                         }}
                       >
-                        Done for today.
+                        {habit.type === 'shoot' ? 'Shot for today.' : 'Done for today.'}
                       </div>
                       {loggedTime && (
                         <div
@@ -886,9 +886,11 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
                       >
                         {habit.type === 'toggle'
                           ? 'Log Today'
-                          : counterValue >= habit.target
-                            ? `Log · ${counterValue}${habit.unit ? ' ' + habit.unit : ''} ✓`
-                            : `Log · ${counterValue} / ${habit.target}${habit.unit ? ' ' + habit.unit : ''}`}
+                          : habit.type === 'shoot'
+                            ? 'Mark Shot'
+                            : counterValue >= habit.target
+                              ? `Log · ${counterValue}${habit.unit ? ' ' + habit.unit : ''} ✓`
+                              : `Log · ${counterValue} / ${habit.target}${habit.unit ? ' ' + habit.unit : ''}`}
                       </button>
 
                       {/* Honest miss for yesterday */}
