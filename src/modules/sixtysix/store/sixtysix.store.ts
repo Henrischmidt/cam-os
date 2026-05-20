@@ -61,6 +61,13 @@ export interface LifeHabit {
   unit?: string
 }
 
+export interface WorkTask {
+  id: string
+  text: string
+  done: boolean
+  createdAt: string
+}
+
 const DEFAULT_LIFE_HABITS: LifeHabit[] = [
   { id: 'life-water', name: 'Water', type: 'counter', target: 8, unit: 'glasses' },
   { id: 'life-fruit', name: 'Fruit', type: 'check', target: 1 },
@@ -93,6 +100,8 @@ interface SixtysixState {
   morningRitualUrl: string
   lifeHabits: LifeHabit[]
   lifeLogs: Record<string, Record<string, number>>
+  workTasks: WorkTask[]
+  focusSessions: Record<string, number>
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -130,6 +139,10 @@ interface SixtysixActions {
   logLifeHabit: (habitId: string, value: number, date?: string) => void
   addLifeHabit: (def: Omit<LifeHabit, 'id'>) => void
   removeLifeHabit: (habitId: string) => void
+  addWorkTask: (text: string) => void
+  toggleWorkTask: (taskId: string) => void
+  clearDoneWorkTasks: () => void
+  incrementFocusSession: (date?: string) => void
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -183,6 +196,8 @@ const initialState: SixtysixState = {
   morningRitualUrl: 'https://open.spotify.com/search/Jim%20Rohn',
   lifeHabits: DEFAULT_LIFE_HABITS,
   lifeLogs: {},
+  workTasks: [],
+  focusSessions: {},
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -571,6 +586,33 @@ export const useSixtysixStore = create<SixtysixStore>()(
 
       removeLifeHabit: (habitId) => {
         set(s => ({ lifeHabits: s.lifeHabits.filter(h => h.id !== habitId) }))
+      },
+
+      addWorkTask: (text) => {
+        const task: WorkTask = {
+          id: makeId(),
+          text: text.trim(),
+          done: false,
+          createdAt: new Date().toISOString(),
+        }
+        set(s => ({ workTasks: [...s.workTasks, task] }))
+      },
+
+      toggleWorkTask: (taskId) => {
+        set(s => ({
+          workTasks: s.workTasks.map(t => t.id === taskId ? { ...t, done: !t.done } : t),
+        }))
+      },
+
+      clearDoneWorkTasks: () => {
+        set(s => ({ workTasks: s.workTasks.filter(t => !t.done) }))
+      },
+
+      incrementFocusSession: (date) => {
+        const today = date ?? todayString(get().dayBeginsHour)
+        set(s => ({
+          focusSessions: { ...s.focusSessions, [today]: (s.focusSessions[today] ?? 0) + 1 },
+        }))
       },
 
       updateIdentityStatement: (statement) => {

@@ -9,6 +9,8 @@ import Cards from './modules/sixtysix/screens/Cards'
 import ArcComplete from './modules/sixtysix/screens/ArcComplete'
 import HubCard from './modules/sixtysix/components/HubCard'
 import Life from './modules/sixtysix/screens/Life'
+import Work from './modules/sixtysix/screens/Work'
+import Focus from './modules/sixtysix/screens/Focus'
 
 // ──────────────────────────────────────────────
 // Splash screen
@@ -123,31 +125,6 @@ const TAB_SLIDE_CSS = `
 `
 
 const TAB_ORDER: Tab[] = ['hub', 'life', 'habits', 'work', 'focus']
-
-// ──────────────────────────────────────────────
-// Stub screens for other tabs
-// ──────────────────────────────────────────────
-function StubScreen({ label }: { label: string }) {
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      minHeight: 'calc(100vh - 96px)',
-      gap: 16,
-    }}>
-      <div style={{
-        fontFamily: "'DM Mono',monospace",
-        fontSize: 10, letterSpacing: '0.34em',
-        color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase',
-      }}>{label}</div>
-      <div style={{
-        fontFamily: "'Instrument Serif',serif",
-        fontStyle: 'italic', fontSize: 24,
-        color: 'rgba(255,255,255,0.25)',
-      }}>Coming soon.</div>
-    </div>
-  )
-}
 
 // ──────────────────────────────────────────────
 // Bottom nav tab definition
@@ -324,8 +301,16 @@ export default function App() {
           <Life />
         </div>
       )}
-      {arc && currentScreen === 'habits' && currentTab === 'work' && <StubScreen label="WORK" />}
-      {arc && currentScreen === 'habits' && currentTab === 'focus' && <StubScreen label="FOCUS" />}
+      {arc && currentScreen === 'habits' && currentTab === 'work' && (
+        <div key="work" style={{ flex: 1, minHeight: 0, animation: `${slideDir === 'right' ? 'tabSlideIn' : 'tabSlideInLeft'} 250ms ease-out` }}>
+          <Work />
+        </div>
+      )}
+      {arc && currentScreen === 'habits' && currentTab === 'focus' && (
+        <div key="focus" style={{ flex: 1, minHeight: 0, animation: `${slideDir === 'right' ? 'tabSlideIn' : 'tabSlideInLeft'} 250ms ease-out` }}>
+          <Focus />
+        </div>
+      )}
 
       {/* Bottom nav */}
       {showNav && (
