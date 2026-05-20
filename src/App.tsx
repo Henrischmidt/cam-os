@@ -302,12 +302,12 @@ export default function App() {
         </div>
       )}
       {arc && currentScreen === 'habits' && currentTab === 'work' && (
-        <div key="work" style={{ flex: 1, minHeight: 0, animation: `${slideDir === 'right' ? 'tabSlideIn' : 'tabSlideInLeft'} 250ms ease-out` }}>
+        <div key="work" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', animation: `${slideDir === 'right' ? 'tabSlideIn' : 'tabSlideInLeft'} 250ms ease-out` }}>
           <Work />
         </div>
       )}
       {arc && currentScreen === 'habits' && currentTab === 'focus' && (
-        <div key="focus" style={{ flex: 1, minHeight: 0, animation: `${slideDir === 'right' ? 'tabSlideIn' : 'tabSlideInLeft'} 250ms ease-out` }}>
+        <div key="focus" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', animation: `${slideDir === 'right' ? 'tabSlideIn' : 'tabSlideInLeft'} 250ms ease-out` }}>
           <Focus />
         </div>
       )}

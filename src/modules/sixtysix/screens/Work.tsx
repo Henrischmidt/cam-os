@@ -23,7 +23,7 @@ export default function Work() {
 
   return (
     <div style={{
-      flex: 1, minHeight: 0, overflowY: 'auto',
+      flex: 1, minHeight: 0, overflowY: 'auto', height: '100%',
       padding: 'calc(env(safe-area-inset-top) + 40px) 24px calc(96px + env(safe-area-inset-bottom))',
       display: 'flex', flexDirection: 'column', gap: 32,
     }}>
