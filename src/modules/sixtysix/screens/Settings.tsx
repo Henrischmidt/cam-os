@@ -9,6 +9,7 @@ import {
   exportWidgetData,
 } from '../lib/icloudSync'
 import { readSnapshotJson } from '../lib/snapshot'
+import { getCard } from '../lib/cardLogic'
 import { useIsMobile } from '../lib/useIsMobile'
 
 // ─── Style tokens ─────────────────────────────────────────────────────────────
@@ -172,6 +173,7 @@ export default function Settings() {
   const {
     arc,
     habits,
+    cards,
     honestMissWordMin,
     notificationsEnabled,
     notificationTime,
@@ -190,6 +192,18 @@ export default function Settings() {
     morningRitualUrl,
     setMorningRitualUrl,
   } = useSixtysixStore()
+
+  type CardData = { id: string; category: string; text: string; attribution: string }
+  const [randomCard, setRandomCard] = useState<CardData | null>(null)
+
+  function showRandomOldCard() {
+    const collected = cards.collected
+    if (collected.length === 0) return
+    const candidates = collected.filter(id => id !== randomCard?.id)
+    const pool = candidates.length > 0 ? candidates : collected
+    const id = pool[Math.floor(Math.random() * pool.length)]
+    setRandomCard(getCard(id) ?? null)
+  }
 
   const isMobile = useIsMobile()
 
@@ -623,6 +637,64 @@ export default function Settings() {
           Export
         </button>
       </Row>
+
+      <Row label="Old Card">
+        <button
+          onClick={showRandomOldCard}
+          disabled={cards.collected.length === 0}
+          style={{
+            fontFamily: mono,
+            fontSize: 10,
+            letterSpacing: '0.28em',
+            textTransform: 'uppercase',
+            color: cards.collected.length === 0 ? fg25 : fg60,
+            background: 'transparent',
+            border: `1px solid rgba(255,255,255,0.12)`,
+            padding: '10px 20px',
+            cursor: cards.collected.length === 0 ? 'default' : 'pointer',
+            opacity: cards.collected.length === 0 ? 0.4 : 1,
+          }}
+        >
+          {randomCard ? 'Another' : 'Show'}
+        </button>
+      </Row>
+
+      {randomCard && (
+        <div style={{
+          border: `1px solid rgba(255,255,255,0.10)`,
+          padding: '24px 0',
+          marginBottom: 8,
+        }}>
+          <div style={{
+            fontFamily: mono, fontSize: 8, letterSpacing: '0.28em',
+            color: fg25, textTransform: 'uppercase', marginBottom: 12,
+          }}>
+            {randomCard.category}
+          </div>
+          <p style={{
+            fontFamily: serif, fontStyle: 'italic', fontSize: 16,
+            color: '#fff', lineHeight: 1.55, margin: '0 0 14px',
+          }}>
+            {randomCard.text}
+          </p>
+          <div style={{
+            fontFamily: mono, fontSize: 9, letterSpacing: '0.14em', color: fg40,
+          }}>
+            — {randomCard.attribution}
+          </div>
+          <button
+            onClick={() => setRandomCard(null)}
+            style={{
+              fontFamily: mono, fontSize: 9, letterSpacing: '0.24em',
+              textTransform: 'uppercase', color: fg25,
+              background: 'transparent', border: 'none',
+              cursor: 'pointer', padding: '12px 0 0',
+            }}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* ── DANGER ZONE ── */}
       <div

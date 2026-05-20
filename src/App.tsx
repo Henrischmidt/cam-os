@@ -244,6 +244,21 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKey)
   }, [currentScreen, setCurrentScreen])
 
+  // Day / night mode — reacts to time of day, re-checks every minute
+  // Day: 07:00–20:00 (white bg via CSS invert), Night: 20:00–07:00 (black bg, default)
+  useEffect(() => {
+    function applyTheme() {
+      const h = new Date().getHours()
+      const isDay = h >= 7 && h < 20
+      document.documentElement.classList.toggle('day-mode', isDay)
+      const meta = document.querySelector('meta[name="theme-color"]')
+      if (meta) meta.setAttribute('content', isDay ? '#ffffff' : '#000000')
+    }
+    applyTheme()
+    const id = setInterval(applyTheme, 60_000)
+    return () => clearInterval(id)
+  }, [])
+
   // When navigating to habits tab, show the habits screen
   function handleTabClick(tab: Tab) {
     setCurrentTab(tab)
@@ -283,13 +298,15 @@ export default function App() {
 
       {/* Other tab stubs */}
       {arc && currentScreen === 'habits' && currentTab === 'hub' && (
-        <div style={{
-          minHeight: 'calc(100vh - 96px)',
-          padding: '56px 56px 96px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 40,
-        }}>
+        <div
+          key="hub"
+          style={{
+            flex: 1, minHeight: 0, overflowY: 'auto',
+            animation: `${slideDir === 'right' ? 'tabSlideIn' : 'tabSlideInLeft'} 250ms ease-out`,
+            padding: 'calc(env(safe-area-inset-top) + 40px) 24px calc(96px + env(safe-area-inset-bottom))',
+            display: 'flex', flexDirection: 'column', gap: 40,
+          }}
+        >
           <div style={{
             fontFamily: "'DM Mono', monospace",
             fontSize: 10,

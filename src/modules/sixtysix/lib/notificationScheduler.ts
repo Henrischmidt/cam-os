@@ -1,38 +1,54 @@
-let _timerId: ReturnType<typeof setTimeout> | null = null
+// Fires at the configured daily time, then every 3 hours after (capped at midnight).
+// cancelNotifications() drains all timers.
 
-function msUntilTime(timeStr: string): number {
-  const [h, m] = timeStr.split(':').map(Number)
+const _timers: ReturnType<typeof setTimeout>[] = []
+
+function msUntilNext(hour: number, minute: number): number {
   const now = new Date()
   const target = new Date()
-  target.setHours(h, m, 0, 0)
+  target.setHours(hour, minute, 0, 0)
   if (target <= now) target.setDate(target.getDate() + 1)
   return target.getTime() - now.getTime()
 }
 
-function fire(timeStr: string) {
-  try {
-    new Notification('The 66', {
-      body: 'Time to show up for yourself.',
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
-      silent: false,
-    })
-  } catch {
-    // Notification may be blocked or unavailable
+function scheduleAt(hour: number, minute: number, body: string) {
+  function loop() {
+    try {
+      new Notification('The 66', {
+        body,
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        silent: false,
+      })
+    } catch { /* blocked or unavailable */ }
+    const id = setTimeout(loop, msUntilNext(hour, minute))
+    _timers.push(id)
   }
-  _timerId = setTimeout(() => fire(timeStr), msUntilTime(timeStr))
+  const id = setTimeout(loop, msUntilNext(hour, minute))
+  _timers.push(id)
 }
 
 export function initNotifications(timeStr: string): void {
   if (typeof Notification === 'undefined') return
   if (Notification.permission !== 'granted') return
   cancelNotifications()
-  _timerId = setTimeout(() => fire(timeStr), msUntilTime(timeStr))
+
+  const [h, m] = timeStr.split(':').map(Number)
+
+  scheduleAt(h, m, 'Time to show up for yourself.')
+
+  const followUp = [
+    'Still time to mark today.',
+    "The arc doesn't pause. Three habits.",
+    "Day isn't done yet.",
+  ]
+  for (let i = 1; i <= 3; i++) {
+    const nextHour = h + i * 3
+    if (nextHour >= 24) break
+    scheduleAt(nextHour, m, followUp[i - 1])
+  }
 }
 
 export function cancelNotifications(): void {
-  if (_timerId !== null) {
-    clearTimeout(_timerId)
-    _timerId = null
-  }
+  while (_timers.length) clearTimeout(_timers.pop()!)
 }
