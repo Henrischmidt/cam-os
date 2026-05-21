@@ -8,7 +8,10 @@ import History from './modules/sixtysix/screens/History'
 import Cards from './modules/sixtysix/screens/Cards'
 import ArcComplete from './modules/sixtysix/screens/ArcComplete'
 import HubCard from './modules/sixtysix/components/HubCard'
+import ArcTree from './modules/sixtysix/components/ArcTree'
 import Life from './modules/sixtysix/screens/Life'
+import Work from './modules/sixtysix/screens/Work'
+import Focus from './modules/sixtysix/screens/Focus'
 
 // ──────────────────────────────────────────────
 // Splash screen
@@ -125,31 +128,6 @@ const TAB_SLIDE_CSS = `
 const TAB_ORDER: Tab[] = ['hub', 'life', 'habits', 'work', 'focus']
 
 // ──────────────────────────────────────────────
-// Stub screens for other tabs
-// ──────────────────────────────────────────────
-function StubScreen({ label }: { label: string }) {
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      minHeight: 'calc(100vh - 96px)',
-      gap: 16,
-    }}>
-      <div style={{
-        fontFamily: "'DM Mono',monospace",
-        fontSize: 10, letterSpacing: '0.34em',
-        color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase',
-      }}>{label}</div>
-      <div style={{
-        fontFamily: "'Instrument Serif',serif",
-        fontStyle: 'italic', fontSize: 24,
-        color: 'rgba(255,255,255,0.25)',
-      }}>Coming soon.</div>
-    </div>
-  )
-}
-
-// ──────────────────────────────────────────────
 // Bottom nav tab definition
 // ──────────────────────────────────────────────
 type Tab = 'hub' | 'life' | 'habits' | 'work' | 'focus'
@@ -244,6 +222,21 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKey)
   }, [currentScreen, setCurrentScreen])
 
+  // Day / night mode — reacts to time of day, re-checks every minute
+  // Day: 07:00–20:00 (white bg via CSS invert), Night: 20:00–07:00 (black bg, default)
+  useEffect(() => {
+    function applyTheme() {
+      const h = new Date().getHours()
+      const isDay = h >= 7 && h < 20
+      document.documentElement.classList.toggle('day-mode', isDay)
+      const meta = document.querySelector('meta[name="theme-color"]')
+      if (meta) meta.setAttribute('content', isDay ? '#ffffff' : '#000000')
+    }
+    applyTheme()
+    const id = setInterval(applyTheme, 60_000)
+    return () => clearInterval(id)
+  }, [])
+
   // When navigating to habits tab, show the habits screen
   function handleTabClick(tab: Tab) {
     setCurrentTab(tab)
@@ -283,13 +276,15 @@ export default function App() {
 
       {/* Other tab stubs */}
       {arc && currentScreen === 'habits' && currentTab === 'hub' && (
-        <div style={{
-          minHeight: 'calc(100vh - 96px)',
-          padding: '56px 56px 96px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 40,
-        }}>
+        <div
+          key="hub"
+          style={{
+            flex: 1, minHeight: 0, overflowY: 'auto',
+            animation: `${slideDir === 'right' ? 'tabSlideIn' : 'tabSlideInLeft'} 250ms ease-out`,
+            padding: 'calc(env(safe-area-inset-top) + 40px) 24px calc(96px + env(safe-area-inset-bottom))',
+            display: 'flex', flexDirection: 'column', gap: 40,
+          }}
+        >
           <div style={{
             fontFamily: "'DM Mono', monospace",
             fontSize: 10,
@@ -299,6 +294,9 @@ export default function App() {
           }}>
             HUB
           </div>
+          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8, paddingBottom: 8 }}>
+            <ArcTree />
+          </div>
           <HubCard />
         </div>
       )}
@@ -307,8 +305,16 @@ export default function App() {
           <Life />
         </div>
       )}
-      {arc && currentScreen === 'habits' && currentTab === 'work' && <StubScreen label="WORK" />}
-      {arc && currentScreen === 'habits' && currentTab === 'focus' && <StubScreen label="FOCUS" />}
+      {arc && currentScreen === 'habits' && currentTab === 'work' && (
+        <div key="work" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', animation: `${slideDir === 'right' ? 'tabSlideIn' : 'tabSlideInLeft'} 250ms ease-out` }}>
+          <Work />
+        </div>
+      )}
+      {arc && currentScreen === 'habits' && currentTab === 'focus' && (
+        <div key="focus" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', animation: `${slideDir === 'right' ? 'tabSlideIn' : 'tabSlideInLeft'} 250ms ease-out` }}>
+          <Focus />
+        </div>
+      )}
 
       {/* Bottom nav */}
       {showNav && (

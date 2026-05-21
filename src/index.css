@@ -32,6 +32,11 @@
 html {
   height: 100%;
   overflow: hidden;
+  transition: filter 500ms ease-out;
+}
+
+html.day-mode {
+  filter: invert(1);
 }
 
 body {
