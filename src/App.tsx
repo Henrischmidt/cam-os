@@ -8,6 +8,7 @@ import History from './modules/sixtysix/screens/History'
 import Cards from './modules/sixtysix/screens/Cards'
 import ArcComplete from './modules/sixtysix/screens/ArcComplete'
 import HubCard from './modules/sixtysix/components/HubCard'
+import ArcTree from './modules/sixtysix/components/ArcTree'
 import Life from './modules/sixtysix/screens/Life'
 import Work from './modules/sixtysix/screens/Work'
 import Focus from './modules/sixtysix/screens/Focus'
@@ -292,6 +293,9 @@ export default function App() {
             textTransform: 'uppercase',
           }}>
             HUB
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8, paddingBottom: 8 }}>
+            <ArcTree />
           </div>
           <HubCard />
         </div>
