@@ -346,6 +346,18 @@ export default function Settings() {
         />
       </Row>
 
+      {/* Permission hint */}
+      {typeof Notification !== 'undefined' && Notification.permission === 'denied' && (
+        <p style={{ fontFamily: sans, fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, margin: '0 0 4px' }}>
+          Notifications are blocked in your browser settings. Go to Settings → Safari → CAM OS → Notifications to allow them.
+        </p>
+      )}
+      {typeof Notification !== 'undefined' && Notification.permission === 'default' && !notificationsEnabled && (
+        <p style={{ fontFamily: sans, fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, margin: '0 0 4px' }}>
+          Tap the toggle to allow notifications.
+        </p>
+      )}
+
       <Row label="Remind Me At">
         <input
           type="time"
@@ -368,7 +380,7 @@ export default function Settings() {
       </Row>
 
       <p style={{ fontFamily: sans, fontSize: 12, color: fg25, lineHeight: 1.6, margin: '0 0 4px' }}>
-        Fires once per day if habits aren't complete. Requires CAM OS to be open or installed as a PWA.
+        Fires up to 4× a day while the app is open. Requires notification permission.
       </p>
 
       {/* ── DAY ROLLOVER ── */}
