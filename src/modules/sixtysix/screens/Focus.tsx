@@ -97,6 +97,7 @@ export default function Focus() {
           <button
             key={d.label}
             onClick={() => handleSelectDuration(i)}
+            disabled={running}
             style={{
               background: durationIdx === i ? 'rgba(255,255,255,0.10)' : 'transparent',
               border: 'none',
@@ -107,7 +108,8 @@ export default function Focus() {
               padding: '8px 20px',
               cursor: running ? 'default' : 'pointer',
               transition: 'background 200ms, color 200ms',
-              opacity: running && durationIdx !== i ? 0.4 : 1,
+              opacity: running && durationIdx !== i ? 0.35 : 1,
+              pointerEvents: running ? 'none' : 'auto',
             }}
           >
             {d.label}
@@ -130,8 +132,8 @@ export default function Focus() {
             stroke={finished ? 'rgba(255,255,255,0.80)' : 'rgba(255,255,255,0.55)'}
             strokeWidth="1.5"
             strokeDasharray={circumference}
-            strokeDashoffset={circumference * (1 - progress)}
-            style={{ transition: 'stroke-dashoffset 1s linear' }}
+            strokeDashoffset={circumference * progress}
+            style={{ transition: running ? 'stroke-dashoffset 1s linear' : 'none' }}
           />
         </svg>
         <div style={{
