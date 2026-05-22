@@ -68,6 +68,38 @@ export interface WorkTask {
   createdAt: string
 }
 
+export interface Medication {
+  id: string
+  name: string
+  dose: string
+  timing: string
+  warning?: string
+}
+
+const DEFAULT_MEDICATIONS: Medication[] = [
+  {
+    id: 'med-panado',
+    name: 'Panado',
+    dose: '1 tablet',
+    timing: 'During the day',
+    warning: 'Stop after dinner — Ultracet contains paracetamol',
+  },
+  {
+    id: 'med-ultracet',
+    name: 'Ultracet',
+    dose: '2 tablets',
+    timing: 'After dinner · Before bed',
+    warning: 'Replaces Panado at night — no extra paracetamol',
+  },
+  {
+    id: 'med-myprocam',
+    name: 'Myprocam',
+    dose: '1 tablet',
+    timing: 'After dinner · Before bed',
+    warning: 'May cause drowsiness — do not drive',
+  },
+]
+
 const DEFAULT_LIFE_HABITS: LifeHabit[] = [
   { id: 'life-water', name: 'Water', type: 'counter', target: 8, unit: 'glasses' },
   { id: 'life-fruit', name: 'Fruit', type: 'check', target: 1 },
@@ -102,6 +134,8 @@ interface SixtysixState {
   lifeLogs: Record<string, Record<string, number>>
   workTasks: WorkTask[]
   focusSessions: Record<string, number>
+  medications: Medication[]
+  medLogs: Record<string, string[]>
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -143,6 +177,7 @@ interface SixtysixActions {
   toggleWorkTask: (taskId: string) => void
   clearDoneWorkTasks: () => void
   incrementFocusSession: (date?: string) => void
+  toggleMedLog: (medId: string, date?: string) => void
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -198,6 +233,8 @@ const initialState: SixtysixState = {
   lifeLogs: {},
   workTasks: [],
   focusSessions: {},
+  medications: DEFAULT_MEDICATIONS,
+  medLogs: {},
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -613,6 +650,17 @@ export const useSixtysixStore = create<SixtysixStore>()(
         set(s => ({
           focusSessions: { ...s.focusSessions, [today]: (s.focusSessions[today] ?? 0) + 1 },
         }))
+      },
+
+      toggleMedLog: (medId, date) => {
+        const today = date ?? todayString(get().dayBeginsHour)
+        set(s => {
+          const taken = s.medLogs[today] ?? []
+          const updated = taken.includes(medId)
+            ? taken.filter(id => id !== medId)
+            : [...taken, medId]
+          return { medLogs: { ...s.medLogs, [today]: updated } }
+        })
       },
 
       updateIdentityStatement: (statement) => {

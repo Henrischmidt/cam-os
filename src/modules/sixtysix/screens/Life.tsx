@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useSixtysixStore } from '../store/sixtysix.store'
-import type { LifeHabit } from '../store/sixtysix.store'
+import type { LifeHabit, Medication } from '../store/sixtysix.store'
 import { todayString } from '../lib/arcLogic'
 import { hapticLight, hapticMedium } from '../lib/haptics'
 
@@ -182,6 +182,78 @@ function LifeRow({ habit, value, onTap, onRemove }: {
   )
 }
 
+// ─── Med row ─────────────────────────────────────────────────────────────────
+
+function MedRow({ med, taken, onToggle }: {
+  med: Medication
+  taken: boolean
+  onToggle: () => void
+}) {
+  return (
+    <div style={{
+      borderBottom: '1px solid rgba(255,255,255,0.05)',
+      paddingTop: 14, paddingBottom: 14,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        {/* Check button */}
+        <button
+          onClick={() => { hapticLight(); onToggle() }}
+          style={{
+            width: 32, height: 32, borderRadius: '50%', flexShrink: 0, marginTop: 1,
+            border: taken ? '1px solid rgba(255,255,255,0.40)' : `1px solid ${fg12}`,
+            background: taken ? 'rgba(255,255,255,0.12)' : 'transparent',
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'background 200ms ease, border-color 200ms ease',
+          }}
+        >
+          {taken && (
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <polyline points="3,7 6,10 11,4" stroke="rgba(255,255,255,0.70)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </button>
+
+        {/* Name + detail */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 3 }}>
+            <span style={{
+              fontFamily: "'Outfit', sans-serif", fontSize: 14,
+              color: taken ? 'rgba(255,255,255,0.35)' : '#fff',
+              transition: 'color 300ms ease',
+              textDecoration: taken ? 'line-through' : 'none',
+            }}>
+              {med.name}
+            </span>
+            <span style={{
+              fontFamily: mono, fontSize: 9, letterSpacing: '0.18em',
+              color: fg25, textTransform: 'uppercase',
+            }}>
+              {med.dose}
+            </span>
+          </div>
+          <div style={{
+            fontFamily: mono, fontSize: 9, letterSpacing: '0.16em',
+            color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase',
+            marginBottom: med.warning ? 4 : 0,
+          }}>
+            {med.timing}
+          </div>
+          {med.warning && (
+            <div style={{
+              fontFamily: "'Outfit', sans-serif", fontSize: 11,
+              color: 'rgba(255,255,255,0.28)',
+              lineHeight: 1.4,
+            }}>
+              {med.warning}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Life screen ──────────────────────────────────────────────────────────────
 
 const SLIDE_CSS = `
@@ -195,16 +267,19 @@ export default function Life() {
   const {
     lifeHabits, lifeLogs, dayBeginsHour,
     logLifeHabit, addLifeHabit, removeLifeHabit,
+    medications, medLogs, toggleMedLog,
   } = useSixtysixStore()
 
   const today = todayString(dayBeginsHour)
   const todayLog = lifeLogs[today] ?? {}
+  const todayMeds = medLogs[today] ?? []
 
   const water = lifeHabits.find(h => h.id === 'life-water')!
   const waterValue = todayLog['life-water'] ?? 0
   const otherHabits = lifeHabits.filter(h => h.id !== 'life-water')
 
   const doneCount = lifeHabits.filter(h => (todayLog[h.id] ?? 0) >= h.target).length
+  const medsDoneCount = medications.filter(m => todayMeds.includes(m.id)).length
 
   return (
     <>
@@ -259,6 +334,32 @@ export default function Life() {
               value={todayLog[habit.id] ?? 0}
               onTap={(delta) => logLifeHabit(habit.id, (todayLog[habit.id] ?? 0) + delta)}
               onRemove={() => removeLifeHabit(habit.id)}
+            />
+          ))}
+        </div>
+
+        {/* Meds */}
+        <div style={{ marginTop: 36 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div style={{
+              fontFamily: mono, fontSize: 9, letterSpacing: '0.36em',
+              color: fg25, textTransform: 'uppercase',
+            }}>
+              Meds
+            </div>
+            <div style={{
+              fontFamily: mono, fontSize: 9, letterSpacing: '0.20em',
+              color: fg25,
+            }}>
+              {medsDoneCount}/{medications.length}
+            </div>
+          </div>
+          {medications.map(med => (
+            <MedRow
+              key={med.id}
+              med={med}
+              taken={todayMeds.includes(med.id)}
+              onToggle={() => toggleMedLog(med.id)}
             />
           ))}
         </div>
