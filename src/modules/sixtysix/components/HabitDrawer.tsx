@@ -571,7 +571,7 @@ export default function HabitDrawer({ habit, arc, logs, onClose }: HabitDrawerPr
                   style={{
                     fontFamily: serif,
                     fontStyle: 'italic',
-                    fontSize: isMobile ? 36 : 56,
+                    fontSize: 'clamp(26px, 7vw, 48px)',
                     fontWeight: 400,
                     color: '#fff',
                     margin: '0 0 12px',

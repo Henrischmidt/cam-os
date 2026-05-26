@@ -204,9 +204,9 @@ export default function HabitRow({ habit, todayLog, yesterdayLog, onClick }: Hab
     gap: '12px',
     cursor: 'pointer',
     paddingLeft: '0px',
-    paddingTop: '10px',
-    paddingBottom: '10px',
-    minHeight: 44,
+    paddingTop: '14px',
+    paddingBottom: '14px',
+    minHeight: 56,
     borderBottom: '1px solid rgba(255,255,255,0.05)',
   }
 
@@ -230,13 +230,10 @@ export default function HabitRow({ habit, todayLog, yesterdayLog, onClick }: Hab
 
   const nameStyle: React.CSSProperties = {
     fontFamily: "'Outfit', sans-serif",
-    fontSize: '14px',
+    fontSize: '15px',
     fontWeight: 400,
     color: isComplete ? 'rgba(255,255,255,0.35)' : '#fff',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    lineHeight: 1.2,
+    lineHeight: 1.3,
     transition: 'color 400ms ease-out',
   }
 
@@ -247,7 +244,7 @@ export default function HabitRow({ habit, todayLog, yesterdayLog, onClick }: Hab
   }
 
   const barTrackStyle: React.CSSProperties = {
-    height: '1px',
+    height: '2px',
     background: 'rgba(255,255,255,0.10)',
     borderRadius: '1px',
     overflow: 'hidden',

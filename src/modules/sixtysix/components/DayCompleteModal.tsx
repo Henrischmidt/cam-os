@@ -20,17 +20,17 @@ export default function DayCompleteModal({ identityStatement, onSubmit, onDismis
         position: 'fixed',
         inset: 0,
         zIndex: 80,
-        background: 'rgba(0,0,0,0.92)',
-        backdropFilter: 'blur(6px)',
+        background: 'rgba(0,0,0,0.95)',
+        backdropFilter: 'blur(8px)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '0 48px',
+        padding: '24px 28px calc(24px + env(safe-area-inset-bottom))',
         animation: 'fade-in 300ms ease both',
       }}
     >
-      {/* Identity read */}
+      {/* Label */}
       <div
         style={{
           fontFamily: mono,
@@ -38,22 +38,24 @@ export default function DayCompleteModal({ identityStatement, onSubmit, onDismis
           letterSpacing: '0.32em',
           color: 'rgba(255,255,255,0.30)',
           textTransform: 'uppercase',
-          marginBottom: 32,
+          marginBottom: 24,
+          textAlign: 'center',
         }}
       >
         TODAY'S MARK
       </div>
 
+      {/* Identity read */}
       <div
         style={{
           fontFamily: serif,
           fontStyle: 'italic',
-          fontSize: 'clamp(22px, 3vw, 30px)',
+          fontSize: 'clamp(18px, 5vw, 26px)',
           color: 'rgba(255,255,255,0.85)',
           textAlign: 'center',
-          maxWidth: 600,
-          lineHeight: 1.4,
-          marginBottom: 56,
+          maxWidth: 400,
+          lineHeight: 1.5,
+          marginBottom: 40,
         }}
       >
         Today you were the kind of person who{' '}
@@ -68,7 +70,8 @@ export default function DayCompleteModal({ identityStatement, onSubmit, onDismis
           letterSpacing: '0.32em',
           color: 'rgba(255,255,255,0.40)',
           textTransform: 'uppercase',
-          marginBottom: 20,
+          marginBottom: 16,
+          textAlign: 'center',
         }}
       >
         ONE WORD FOR TODAY
@@ -78,15 +81,14 @@ export default function DayCompleteModal({ identityStatement, onSubmit, onDismis
         autoFocus
         value={word}
         onChange={e => {
-          // Single word only — no spaces
           const v = e.target.value.replace(/\s/g, '')
           setWord(v)
         }}
         onKeyDown={e => {
-          if (e.key === 'Enter' && trimmed) onSubmit(trimmed)
+          if (e.key === 'Enter' && trimmed) { hapticSuccess(); onSubmit(trimmed) }
           if (e.key === 'Escape') onDismiss()
         }}
-        placeholder="___"
+        placeholder="—"
         maxLength={32}
         style={{
           background: 'transparent',
@@ -95,11 +97,12 @@ export default function DayCompleteModal({ identityStatement, onSubmit, onDismis
           outline: 'none',
           fontFamily: serif,
           fontStyle: 'italic',
-          fontSize: 36,
+          fontSize: 'clamp(28px, 8vw, 40px)',
           color: '#fff',
           textAlign: 'center',
-          width: 'min(300px, 80vw)',
-          padding: '12px 0',
+          width: '100%',
+          maxWidth: 300,
+          padding: '10px 0',
           letterSpacing: '0.01em',
         }}
       />
@@ -107,13 +110,16 @@ export default function DayCompleteModal({ identityStatement, onSubmit, onDismis
       <div
         style={{
           display: 'flex',
-          gap: 16,
-          marginTop: 40,
+          gap: 12,
+          marginTop: 36,
+          width: '100%',
+          maxWidth: 300,
         }}
       >
         <button
           onClick={onDismiss}
           style={{
+            flex: 1,
             fontFamily: mono,
             fontSize: 10,
             letterSpacing: '0.3em',
@@ -121,7 +127,8 @@ export default function DayCompleteModal({ identityStatement, onSubmit, onDismis
             color: 'rgba(255,255,255,0.30)',
             background: 'transparent',
             border: '1px solid rgba(255,255,255,0.10)',
-            padding: '14px 28px',
+            padding: '16px 0',
+            minHeight: 52,
             cursor: 'pointer',
           }}
         >
@@ -132,14 +139,16 @@ export default function DayCompleteModal({ identityStatement, onSubmit, onDismis
           onClick={() => { if (trimmed) { hapticSuccess(); onSubmit(trimmed) } }}
           disabled={!trimmed}
           style={{
+            flex: 2,
             fontFamily: mono,
             fontSize: 10,
             letterSpacing: '0.3em',
             textTransform: 'uppercase',
-            color: trimmed ? '#000' : 'rgba(255,255,255,0.30)',
+            color: trimmed ? '#000' : 'rgba(255,255,255,0.25)',
             background: trimmed ? '#fff' : 'transparent',
             border: `1px solid ${trimmed ? '#fff' : 'rgba(255,255,255,0.10)'}`,
-            padding: '14px 28px',
+            padding: '16px 0',
+            minHeight: 52,
             cursor: trimmed ? 'pointer' : 'default',
             transition: 'background 250ms ease, color 250ms ease, border-color 250ms ease',
           }}

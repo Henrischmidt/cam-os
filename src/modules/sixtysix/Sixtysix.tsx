@@ -172,15 +172,15 @@ export default function Sixtysix() {
     }
   }, [arc, cards, setTodayCard, dayBeginsHour])
 
-  // Daily reminder notifications
+  // Daily reminder notifications — passes arc day so each day gets a different quote
   useEffect(() => {
-    if (notificationsEnabled) {
-      initNotifications(notificationTime)
+    if (notificationsEnabled && arc) {
+      initNotifications(notificationTime, arc.currentDay)
     } else {
       cancelNotifications()
     }
     return () => cancelNotifications()
-  }, [notificationsEnabled, notificationTime])
+  }, [notificationsEnabled, notificationTime, arc?.currentDay]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Haptic when all habits complete for the day
   const prevDayComplete = useRef(false)
@@ -423,11 +423,11 @@ export default function Sixtysix() {
                   {(['toggle','counter','timer'] as HabitType[]).map(t => (
                     <button key={t} onClick={() => { setNewHabitType(t); setNewHabitTarget(t === 'toggle' ? 1 : newHabitTarget) }} style={{
                       fontFamily: mono, fontSize: 9, letterSpacing: '0.28em',
-                      textTransform: 'uppercase', padding: '8px 12px', cursor: 'pointer',
+                      textTransform: 'uppercase', padding: '10px 16px', cursor: 'pointer',
                       border: '1px solid rgba(255,255,255,0.14)',
                       background: newHabitType === t ? '#fff' : 'transparent',
                       color: newHabitType === t ? '#000' : 'rgba(255,255,255,0.45)',
-                      minHeight: 36,
+                      minHeight: 44,
                     }}>{t}</button>
                   ))}
                 </div>
