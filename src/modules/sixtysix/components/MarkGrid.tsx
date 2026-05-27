@@ -102,7 +102,8 @@ export default function MarkGrid({ logs, habits, arcId, arcStartDate, className 
   let honestCt = 0
   let missCt = 0
   const arcDaysInWindow = days.filter(d => d >= arcStartDate && d <= todayStr).length
-  const possibleMarks = arcDaysInWindow * activeHabits.length
+  const _possibleMarks = arcDaysInWindow * activeHabits.length
+  void _possibleMarks
 
   const cells: Array<{ day: string; habit: Habit; state: CellState }> = []
 
@@ -196,9 +197,7 @@ export default function MarkGrid({ logs, habits, arcId, arcStartDate, className 
       <style>{STYLES}</style>
       <div style={containerStyle} className={className}>
         <div style={headerStyle}>
-          <span style={labelStyle}>
-            LAST {dayCount} DAYS &middot; ALL HABITS &middot; {possibleMarks} POSSIBLE MARKS
-          </span>
+          <span style={labelStyle}>LAST {dayCount} DAYS</span>
           <span style={statsStyle}>
             {doneCt} DONE &middot; {honestCt} HONEST &middot; {missCt} MISS
           </span>

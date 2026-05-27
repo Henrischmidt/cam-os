@@ -189,10 +189,11 @@ function QuickLog({ value, target, unit, increments, onChange }: QuickLogProps) 
             onClick={() => onChange(Math.min(value + inc, target * 2))}
             style={{
               flex: 1,
-              fontFamily: mono, fontSize: 11, letterSpacing: '0.2em',
+              fontFamily: mono, fontSize: 13, letterSpacing: '0.2em',
               color: fg60, background: 'transparent',
               border: '1px solid rgba(255,255,255,0.12)',
-              padding: '10px 0', cursor: 'pointer',
+              padding: '14px 0', cursor: 'pointer',
+              minHeight: 48,
               textTransform: 'uppercase',
             }}
           >
@@ -202,10 +203,11 @@ function QuickLog({ value, target, unit, increments, onChange }: QuickLogProps) 
         <button
           onClick={() => onChange(0)}
           style={{
-            fontFamily: mono, fontSize: 10, letterSpacing: '0.2em',
+            fontFamily: mono, fontSize: 14, letterSpacing: '0.2em',
             color: fg25, background: 'transparent',
             border: '1px solid rgba(255,255,255,0.06)',
-            padding: '10px 12px', cursor: 'pointer',
+            padding: '14px 16px', cursor: 'pointer',
+            minHeight: 48,
           }}
         >
           ✕
